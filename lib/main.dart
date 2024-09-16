@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:for_gdsc_2024/view/startup/login.dart';
+import 'package:for_gdsc_2024/view/startup/start.dart';
 
 Future<void> main() async {
   //Firebaseのパッケージを使用
@@ -32,13 +33,16 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         appBarTheme: const AppBarTheme(
+          //基本となるAppbarの背景色の設定
           backgroundColor: Color(0xFF0E607E),
           foregroundColor: Colors.white,
         ),
+        //Scaffoldの背景色の設定
         scaffoldBackgroundColor: const Color(0xFF00413E),
         useMaterial3: true,
       ),
-      home: const Login(),
+      //最初に起動する画面
+      home: Start(),
     );
   }
 }
