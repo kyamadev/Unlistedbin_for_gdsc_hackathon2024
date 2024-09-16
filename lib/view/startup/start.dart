@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:for_gdsc_2024/config/size_config.dart';
 import 'package:for_gdsc_2024/view/startup/login.dart';
 import 'package:for_gdsc_2024/view/startup/register.dart';
 
@@ -13,7 +12,6 @@ class Start extends StatefulWidget {
 class _StartState extends State<Start> {
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context);
     return Scaffold(
       appBar: AppBar(
         title: Text("AppName"),
