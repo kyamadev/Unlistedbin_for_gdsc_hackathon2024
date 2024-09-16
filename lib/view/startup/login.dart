@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:for_gdsc_2024/view/mypage.dart';
 import 'package:for_gdsc_2024/view/startup/register.dart';
+import 'package:for_gdsc_2024/view/startup/resetpasswd.dart';
 
 import '../../config/size_config.dart';
 
@@ -22,18 +24,36 @@ class _LoginState extends State<Login> {
 
   final userAuth =FirebaseAuth.instance;
 
+  GithubAuthProvider githubProvider = GithubAuthProvider();
+
+  Future _signInWithGitHub() async {
+    await FirebaseAuth.instance.signInWithPopup(githubProvider);
+    Navigator.pushAndRemoveUntil(
+        context, MaterialPageRoute(builder: (context) => Mypage()),(_) => false);
+  }
+
   //sign in 用のmethod
   Future<void> _signIn(BuildContext context,String email,String password) async{
     try{
       await userAuth.signInWithEmailAndPassword(email: email, password: password);
-      /*Navigator.pushAndRemoveUntil(
-          context, MaterialPageRoute(builder: (context) => Navigation()),(_) => false);*/
+      Navigator.pushAndRemoveUntil(
+          context, MaterialPageRoute(builder: (context) => Mypage()),(_) => false);
     }catch(e){
       print(e);
       Fluttertoast.showToast(msg: "Firebaseのログインに失敗しました");
     }
   }
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      return 'success';
+    } catch (e) {
+      return print("error:$e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +76,7 @@ class _LoginState extends State<Login> {
                   child: Column(
                     children: [
                       SizedBox(height: 100,),
+                      //email 用のTextfield
                       TextFormField(
                         controller: _emailController,
                         decoration: InputDecoration(
@@ -91,6 +112,7 @@ class _LoginState extends State<Login> {
                         },
                       ),
                       SizedBox(height: 30),
+                      //password 用のTextfield
                       TextFormField(
                         controller: _passwordController,
                         decoration: InputDecoration(
@@ -128,6 +150,7 @@ class _LoginState extends State<Login> {
                         },
                       ),
                       SizedBox(height: 30),
+                      //Sign in ボタン
                       ElevatedButton(
                         onPressed: () async{
                         //sign in押されたら -> firebase使ってsign in
@@ -152,20 +175,38 @@ class _LoginState extends State<Login> {
                         ),
                       ),
                       SizedBox(height: 30),
-                      Text('Forget password?', style: TextStyle(color: Color(0xFF0500FF),
-                        fontSize: 30,
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w400,
-                        height: 0,),
+                      TextButton(
+                        onPressed: (){
+                          Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return Resetpasswd();
+                                },
+                              ));
+                        },
+                        child: Text('Forget password?', style: TextStyle(color: Color(0xFF0500FF),
+                          fontSize: 30,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w400,
+                          height: 0,),
+                        ),
                       ),
                       SizedBox(height: 30),
                       Text("Or with", style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20
+                          color: Colors.white,
+                          fontSize: 20
                       ),),
 
                       //github ログイン用画像
-                      Image.asset('images/github_mark.png'),
+                      GestureDetector(
+                        child: Image.asset('images/github_mark.png'),
+                        onTap: () async{
+                          try{
+                            await _signInWithGitHub();
+                          }catch(e) {
+                            print("githubでsign in出来ません:$e");
+                          }
+                      },),
                       SizedBox(height: 30),
                       //白い線
                       Container(
@@ -209,8 +250,6 @@ class _LoginState extends State<Login> {
 
                         ],
                       )
-
-
                     ],
                   ),
                 ),
