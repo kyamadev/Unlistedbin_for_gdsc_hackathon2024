@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:for_gdsc_2024/view/components/mypage_appbar.dart';
 
 class Mypage extends StatefulWidget {
   const Mypage({super.key});
@@ -8,13 +9,11 @@ class Mypage extends StatefulWidget {
 }
 
 class _MypageState extends State<Mypage> {
+  final String username = '{Username}';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Text("My page",
-        style: TextStyle(
-          fontSize: 30,
-        ),),
+      appBar: CustomAppBar(),
     );
   }
 }
