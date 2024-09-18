@@ -22,7 +22,6 @@ Future<void> main() async {
       measurementId: dotenv.env['FIREBASE_MEASUREMENT_ID']!,
     ),
   );
-
   runApp(MyApp());
 }
 
