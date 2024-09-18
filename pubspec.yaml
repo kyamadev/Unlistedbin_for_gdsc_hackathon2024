@@ -45,6 +45,8 @@ dependencies:
   #toastだす用
   fluttertoast: ^8.2.8
 
+  cloud_firestore: ^5.4.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:for_gdsc_2024/view/startup/login.dart';
 
 import '../../config/size_config.dart';
+import '../../model/appuser.dart';
 import '../mypage.dart';
 
 class Register extends StatefulWidget {
@@ -38,10 +40,25 @@ class _RegisterState extends State<Register> {
         context, MaterialPageRoute(builder: (context) => Mypage()),(_) => false);
   }
 
+  //新規ユーザ情報登録用
+  final AppUser _newUser = AppUser();
+
   //sign up 用のmethod
   Future<void> _createUser(BuildContext context, String email, String password) async {
     try {
-      await userAuth.createUserWithEmailAndPassword(email: email, password: password);
+      // Firebase Authentication にユーザーを作成
+      UserCredential userCredential= await userAuth.createUserWithEmailAndPassword(email: email, password: password);
+
+      // Firestore のドキュメントリファレンスを取得（ユーザーIDを基に保存先を決定）
+      DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid);
+
+      // Firestore にユーザー情報を保存
+      _newUser.username = _displaynameController.text;
+      _newUser.email = _emailController.text;
+      _newUser.created_at = DateTime.now();
+
+      await _setUser(userDocRef);
+
       Navigator.pushAndRemoveUntil(
           context, MaterialPageRoute(builder: (context) => Mypage()),(_) => false);
     } catch (e) {
@@ -50,6 +67,20 @@ class _RegisterState extends State<Register> {
     }
   }
 
+  //user情報をfirebaseに格納する
+  Future<void> _setUser(DocumentReference _mainReference)async {
+    try{
+      _formKey.currentState!.save();
+      await _mainReference.set({
+        'username':_newUser.username,
+        'email':_newUser.email,
+        'created_at':_newUser.created_at
+      });
+      Fluttertoast.showToast(msg: "ユーザ情報の保存に成功しました");
+    }catch(e){
+      Fluttertoast.showToast(msg: "ユーザ情報の保存に失敗しました");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
