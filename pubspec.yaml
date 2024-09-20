@@ -40,6 +40,8 @@ dependencies:
   firebase_core: ^3.4.1
   #firebase認証用
   firebase_auth: ^5.2.1
+  #firebaseストレージ用
+  firebase_storage: ^12.3.1
   #.env読み込むためのパッケージ
   flutter_dotenv: ^5.1.0
   #toastだす用
