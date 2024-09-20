@@ -6,6 +6,10 @@ import 'package:for_gdsc_2024/view/components/mypage_appbar.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:for_gdsc_2024/view/components/mypage_drawer.dart';
+import 'package:provider/provider.dart';
+
+import 'components/changeNotifire.dart';
 
 class Mypage extends StatefulWidget {
   const Mypage({super.key});
@@ -26,6 +30,27 @@ class _MypageState extends State<Mypage> {
     if (user != null) {
       userId = user.uid;
       _fetchRepositoriesInRealtime(); // リアルタイムでリポジトリを監視
+      _fetchUserName();
+    }
+  }
+
+  // Firebaseからユーザー名を取得し、UserModelに反映
+  Future<void> _fetchUserName() async {
+    try {
+      DocumentSnapshot snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (snapshot.exists) {
+        String username = snapshot.get('username') as String;
+
+        // UserModelにユーザー名を反映
+        Provider.of<AppUserProvider>(context, listen: false)
+            .setUsername(username);
+      }
+    } catch (e) {
+      print('ユーザー名の取得エラー: $e');
     }
   }
 
@@ -84,6 +109,7 @@ class _MypageState extends State<Mypage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(),
+      drawer: CustomDrawer(),
       body: Container(
         margin: EdgeInsets.only(
           top: 50,
