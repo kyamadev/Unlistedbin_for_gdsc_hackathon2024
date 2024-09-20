@@ -1,6 +1,7 @@
-import 'dart:html' as html; 
+import 'dart:html' as html;
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:for_gdsc_2024/view/components/mypage_appbar.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,9 +18,9 @@ class Mypage extends StatefulWidget {
   State<Mypage> createState() => _MypageState();
 }
 class _MypageState extends State<Mypage> {
-  late String userId;  // 現在のユーザーIDを保持
-  List<String> repositoryNames = [];  // 取得したリポジトリ名を保持
-  bool isLoading = true;  // ローディング状態の管理
+  late String userId; // 現在のユーザーIDを保持
+  List<String> repositoryNames = []; // 取得したリポジトリ名を保持
+  bool isLoading = true; // ローディング状態の管理
 
   @override
   void initState() {
@@ -27,7 +28,7 @@ class _MypageState extends State<Mypage> {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       userId = user.uid;
-      _fetchRepositoriesInRealtime();// リアルタイムでリポジトリを監視
+      _fetchRepositoriesInRealtime(); // リアルタイムでリポジトリを監視
       _fetchUserName();
     }else{
       //ログアウトしているときはローディング状態をfalseにする
@@ -49,13 +50,13 @@ class _MypageState extends State<Mypage> {
         String username = snapshot.get('username') as String;
 
         // UserModelにユーザー名を反映
-        Provider.of<AppUserProvider>(context, listen: false).setUsername(username);
+        Provider.of<AppUserProvider>(context, listen: false)
+            .setUsername(username);
       }
     } catch (e) {
       print('ユーザー名の取得エラー: $e');
     }
   }
-
 
   // Firestoreからリポジトリ名を取得する
   Future<void> _fetchRepositories() async {
@@ -68,11 +69,12 @@ class _MypageState extends State<Mypage> {
           .get();
 
       // 取得したドキュメントからリポジトリ名をリストに追加
-      final List<String> repoNames = snapshot.docs.map((doc) => doc['name'] as String).toList();
+      final List<String> repoNames =
+          snapshot.docs.map((doc) => doc['name'] as String).toList();
 
       setState(() {
         repositoryNames = repoNames;
-        isLoading = false;  // ローディング完了
+        isLoading = false; // ローディング完了
       });
     } catch (e) {
       print('リポジトリデータの取得エラー: $e');
@@ -84,24 +86,25 @@ class _MypageState extends State<Mypage> {
 
   void _fetchRepositoriesInRealtime() {
     FirebaseFirestore.instance
-      .collection('users')
-      .doc(userId)
-      .collection('repositories')
-      .snapshots()
-      .listen((snapshot) {
-        final List<String> repoNames = snapshot.docs.map((doc) => doc['name'] as String).toList();
-        setState(() {
-          repositoryNames = repoNames;
-          isLoading = false;
-        });
+        .collection('users')
+        .doc(userId)
+        .collection('repositories')
+        .snapshots()
+        .listen((snapshot) {
+      final List<String> repoNames =
+          snapshot.docs.map((doc) => doc['name'] as String).toList();
+      setState(() {
+        repositoryNames = repoNames;
+        isLoading = false;
       });
+    });
   }
 
   // フォルダのアップロード後に再読み込み
   Future<void> _uploadFolderAndReload() async {
     // フォルダのアップロード処理
     await _uploadFolder();
-    
+
     // アップロード後にリポジトリリストを再取得
     await _fetchRepositories();
   }
@@ -154,7 +157,7 @@ class _MypageState extends State<Mypage> {
                 child: ListView.builder(
                   itemCount: repositoryNames.length,
                   itemBuilder: (context, index) {
-                    return _buildRepoItem(repositoryNames[index]);  // リポジトリ名を表示
+                    return _buildRepoItem(repositoryNames[index]); // リポジトリ名を表示
                   },
                 ),
               ),
@@ -178,7 +181,8 @@ class _MypageState extends State<Mypage> {
       final files = uploadInput.files;
       if (files != null && files.isNotEmpty) {
         // 最初のファイルからフォルダ名を取得（relativePathを分解）
-        String folderName = files.first.relativePath?.split('/')?.first ?? 'default_folder';
+        String folderName =
+            files.first.relativePath?.split('/')?.first ?? 'default_folder';
 
         // Repositories コレクションにメタデータを保存
         await _saveRepositoryMetadata(repositoryId, folderName);
@@ -187,10 +191,15 @@ class _MypageState extends State<Mypage> {
         for (var file in files) {
           // 各ファイルの相対パスを使用してフォルダ構造をFirebase Storageに再現
           String relativePath = file.relativePath!;
-          String storagePath = 'repositories/$userId/$repositoryId/$relativePath'; 
+          String storagePath =
+              'repositories/$userId/$repositoryId/$relativePath';
 
           // Firebase Storageにファイルをアップロード
           await _uploadFile(file, storagePath);
+          Fluttertoast.showToast(
+              msg: 'ファイルをアップロードしています: ${file.name}',
+              textColor: Colors.white,
+              timeInSecForIosWeb: 2);
         }
       }
     });
@@ -199,19 +208,20 @@ class _MypageState extends State<Mypage> {
   }
 
   // Repositories コレクションにメタデータを保存（userのサブコレクション）
-  Future<void> _saveRepositoryMetadata(String repositoryId, String folderName) async {
+  Future<void> _saveRepositoryMetadata(
+      String repositoryId, String folderName) async {
     try {
       // Firestoreにリポジトリメタデータを保存
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
-          .collection('repositories') 
-          .doc(repositoryId) 
+          .collection('repositories')
+          .doc(repositoryId)
           .set({
-        'name': folderName, 
+        'name': folderName,
         'url_key': null, // URL作成時に必要
-        'created_at': Timestamp.now(), 
-        'updated_at': Timestamp.now(), 
+        'created_at': Timestamp.now(),
+        'updated_at': Timestamp.now(),
       });
 
       print('リポジトリメタデータを保存しました: $repositoryId');
@@ -230,9 +240,18 @@ class _MypageState extends State<Mypage> {
       await uploadTask.whenComplete(() async {
         String downloadUrl = await storageRef.getDownloadURL();
         print('ファイルアップロード完了: ${file.name}, URL: $downloadUrl');
+        Fluttertoast.showToast(
+            msg: 'ファイルアップロード完了: ${file.name}',
+            textColor: Colors.white,
+            timeInSecForIosWeb: 2);
       });
     } catch (e) {
       print('ファイルのアップロード中にエラーが発生しました: $e');
+      Fluttertoast.showToast(
+          msg: 'ファイルのアップロード中にエラーが発生しました: $e',
+          backgroundColor: Colors.red, //動作していない by kyama
+          textColor: Colors.white,
+          timeInSecForIosWeb: 5);
     }
   }
 
@@ -268,5 +287,4 @@ class _MypageState extends State<Mypage> {
       ),
     );
   }
-
 }
