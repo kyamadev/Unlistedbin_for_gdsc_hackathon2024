@@ -21,6 +21,7 @@ class _MypageState extends State<Mypage> {
   late String userId; // 現在のユーザーIDを保持
   List<String> repositoryNames = []; // 取得したリポジトリ名を保持
   bool isLoading = true; // ローディング状態の管理
+  String appUrl =  html.window.location.origin;
 
   @override
   void initState() {
@@ -219,7 +220,7 @@ class _MypageState extends State<Mypage> {
           .doc(repositoryId)
           .set({
         'name': folderName,
-        'url_key': null, // URL作成時に必要
+        'url_key': "$appUrl/repo/$repositoryId",
         'created_at': Timestamp.now(),
         'updated_at': Timestamp.now(),
       });

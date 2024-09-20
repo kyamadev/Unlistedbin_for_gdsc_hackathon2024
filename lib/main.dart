@@ -1,21 +1,21 @@
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:for_gdsc_2024/view/components/changeNotifire.dart';
-import 'package:for_gdsc_2024/view/startup/login.dart';
-import 'package:for_gdsc_2024/view/startup/start.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:for_gdsc_2024/view/repository.dart';
+import 'package:for_gdsc_2024/view/startup/start.dart';
+import 'package:for_gdsc_2024/view/components/changeNotifire.dart'; 
+import 'package:flutter/foundation.dart'; 
 
 Future<void> main() async {
-  //Firebaseのパッケージを使用
   WidgetsFlutterBinding.ensureInitialized();
-  //firebaseの情報が書いてある環境変数を読み込む
+
   await dotenv.load(fileName: ".env");
-  //firebase初期化
+
   await Firebase.initializeApp(
     options: FirebaseOptions(
-        apiKey: dotenv.env['FIREBASE_API_KEY']!,
+      apiKey: dotenv.env['FIREBASE_API_KEY']!,
       authDomain: dotenv.env['FIREBASE_AUTH_DOMAIN']!,
       projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
       storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
@@ -24,32 +24,58 @@ Future<void> main() async {
       measurementId: dotenv.env['FIREBASE_MEASUREMENT_ID']!,
     ),
   );
-  runApp(
-    ChangeNotifierProvider(
-      //ユーザ名の変更を感知
-      create: (context) => AppUserProvider(),
-      child: MyApp(),
-    ),
-  );
+
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        appBarTheme: const AppBarTheme(
-          //基本となるAppbarの背景色の設定
-          backgroundColor: Color(0xFF0E607E),
-          foregroundColor: Colors.white,
+    return MultiProvider(  // マルチプロバイダーを使用して複数のプロバイダーを提供可能
+      providers: [
+        ChangeNotifierProvider<AppUserProvider>(
+          create: (_) => AppUserProvider(),  // AppUserProviderのインスタンスを作成
         ),
-        //Scaffoldの背景色の設定
-        scaffoldBackgroundColor: const Color(0xFF00413E),
-        useMaterial3: true,
+      ],
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFF0E607E),  // AppBarの背景色
+            foregroundColor: Colors.white,       // AppBarの文字色
+          ),
+          scaffoldBackgroundColor: const Color(0xFF00413E),  // 背景色
+          useMaterial3: true,
+        ),
+        onGenerateRoute: (settings) {
+          String routeName = settings.name ?? '/';
+          if (kIsWeb && routeName == '/') {
+            routeName = Uri.base.path + (Uri.base.hasQuery ? '?${Uri.base.query}' : '');
+          }
+
+          final Uri uri = Uri.parse(routeName);
+          print('Navigated to: $routeName');
+
+          if (uri.pathSegments.length == 2 && uri.pathSegments.first == 'repo') {
+            String repoId = uri.pathSegments[1];
+            return MaterialPageRoute(
+              builder: (context) => RepositoryScreen(repoId: repoId),
+            );
+          }
+
+          final User? user = FirebaseAuth.instance.currentUser;
+
+          if (user == null) {
+            return MaterialPageRoute(
+              builder: (context) => Start(),
+            );
+          }
+
+          return MaterialPageRoute(
+            builder: (context) => Start(),
+          );
+        },
       ),
-      //最初に起動する画面
-      home: Start(),
     );
   }
 }
