@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:for_gdsc_2024/view/mypage.dart';
+import 'package:for_gdsc_2024/view/mypage/mypage.dart';
 import 'package:for_gdsc_2024/view/startup/register.dart';
 import 'package:for_gdsc_2024/view/startup/resetpasswd.dart';
 

@@ -6,7 +6,7 @@ import 'package:for_gdsc_2024/view/startup/login.dart';
 
 import '../../config/size_config.dart';
 import '../../model/appuser.dart';
-import '../mypage.dart';
+import '../mypage/mypage.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});

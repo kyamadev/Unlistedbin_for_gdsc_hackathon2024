@@ -9,7 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:for_gdsc_2024/view/components/mypage_drawer.dart';
 import 'package:provider/provider.dart';
 
-import 'components/changeNotifire.dart';
+import '../components/changeNotifire.dart';
 
 class Mypage extends StatefulWidget {
   const Mypage({super.key});
