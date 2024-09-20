@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'changeNotifire.dart';
 
 
 // マイページ用のカスタムAppBar
@@ -69,19 +72,29 @@ class _CustomAppBarState extends State<CustomAppBar> {
                         borderRadius: BorderRadius.circular(10),
                     ),
                     child: Center(
-                        child: Text(
-                            '$username',
-                            style: TextStyle(
-                                color: Color(0xFF02607E),
-                                fontSize: 30,
-                                fontFamily: 'Inter',
-                                fontWeight: FontWeight.w400,
-                                height: 1.0,
-                            ),
+                        //user名表示・反映
+                        child: Consumer<AppUserProvider>(
+                            builder: (context, userModel, child) {
+                                //user名がfirebaseに入っていないときには{Username}を返す
+                                String displayName = userModel.username.isNotEmpty
+                                    ? userModel.username
+                                    : '{Username}';
+                                return Text(
+                                    displayName,
+                                    style: TextStyle(
+                                        color: Color(0xFF02607E),
+                                        fontSize: 30,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w400,
+                                        height: 1.0,
+                                    ),
+                                );
+                            },
                         ),
                     ),
                 ),
             ],
+
         );
     }
 }

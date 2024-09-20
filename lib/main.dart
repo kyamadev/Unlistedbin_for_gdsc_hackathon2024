@@ -2,8 +2,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:for_gdsc_2024/view/components/changeNotifire.dart';
 import 'package:for_gdsc_2024/view/startup/login.dart';
 import 'package:for_gdsc_2024/view/startup/start.dart';
+import 'package:provider/provider.dart';
 
 Future<void> main() async {
   //Firebaseのパッケージを使用
@@ -22,7 +24,13 @@ Future<void> main() async {
       measurementId: dotenv.env['FIREBASE_MEASUREMENT_ID']!,
     ),
   );
-  runApp(MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      //ユーザ名の変更を感知
+      create: (context) => AppUserProvider(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
