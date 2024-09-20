@@ -31,6 +31,11 @@ class _MypageState extends State<Mypage> {
       userId = user.uid;
       _fetchRepositoriesInRealtime();// リアルタイムでリポジトリを監視
       _fetchUserName();
+    }else{
+      //ログアウトしているときはローディング状態をfalseにする
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
