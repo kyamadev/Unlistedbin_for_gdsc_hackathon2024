@@ -14,29 +14,33 @@ class _StartState extends State<Start> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("AppName"),
+        title: Text("Unlistedbin"),
         actions: [
-          ElevatedButton(onPressed: () {
-            //sign in押されたら -> ログイン画面へ画面遷移
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) {
-                  return Login();
-                },
+          ElevatedButton(
+            onPressed: () {
+              //sign in押されたら -> ログイン画面へ画面遷移
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) {
+                    return Login();
+                  },
+                ),
+              );
+            },
+            child: Text(
+              "Sign in",
+              style: TextStyle(
+                //ボタンの文字色
+                color: Color(0xFF02607E),
+                fontSize: 30,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w400,
+                height: 0,
               ),
-            );
-          }, child: Text("Sign in",style: TextStyle(
-            //ボタンの文字色
-            color: Color(0xFF02607E),
-            fontSize: 30,
-            fontFamily: 'Inter',
-            fontWeight: FontWeight.w400,
-            height: 0,
-          ),),
-            style: ElevatedButton.styleFrom(
-              //背景色
-                backgroundColor: Colors.white
             ),
+            style: ElevatedButton.styleFrom(
+                //背景色
+                backgroundColor: Colors.white),
           ),
         ],
       ),
@@ -46,7 +50,9 @@ class _StartState extends State<Start> {
           alignment: Alignment.center,
           child: Column(
             children: [
-              SizedBox(height: 50,),
+              SizedBox(
+                height: 50,
+              ),
               Text.rich(
                 TextSpan(
                   children: [
@@ -85,33 +91,39 @@ class _StartState extends State<Start> {
                   height: 0,
                 ),
               ),
-              SizedBox(height: 40,),
-              ElevatedButton(onPressed: () {
-                //sign up押されたら -> 新規登録
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return Register();
-                    },
-                  ),
-                );
-              }, child: Text("Sign up",style: TextStyle(
-                //ボタンの文字色
-                color: Colors.white,
-                fontSize: 30,
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w400,
-                height: 0,
-              ),),
-              style: ElevatedButton.styleFrom(
-                //文字の色と背景色
-                 backgroundColor: Color(0xFF02607E)
+              SizedBox(
+                height: 40,
               ),
+              ElevatedButton(
+                onPressed: () {
+                  //sign up押されたら -> 新規登録
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return Register();
+                      },
+                    ),
+                  );
+                },
+                child: Text(
+                  "Sign up",
+                  style: TextStyle(
+                    //ボタンの文字色
+                    color: Colors.white,
+                    fontSize: 30,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w400,
+                    height: 0,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                    //文字の色と背景色
+                    backgroundColor: Color(0xFF02607E)),
               ),
             ],
           ),
         ),
-        ),
-      );
+      ),
+    );
   }
 }

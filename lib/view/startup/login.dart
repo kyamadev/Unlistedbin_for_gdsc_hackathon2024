@@ -15,30 +15,32 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  final GlobalKey<FormState> _formKey= GlobalKey<FormState>();
-  String email="";
-  String password="";
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  String email = "";
+  String password = "";
 
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
 
-  final userAuth =FirebaseAuth.instance;
+  final userAuth = FirebaseAuth.instance;
 
   GithubAuthProvider githubProvider = GithubAuthProvider();
 
   Future _signInWithGitHub() async {
     await FirebaseAuth.instance.signInWithPopup(githubProvider);
-    Navigator.pushAndRemoveUntil(
-        context, MaterialPageRoute(builder: (context) => Mypage()),(_) => false);
+    Navigator.pushAndRemoveUntil(context,
+        MaterialPageRoute(builder: (context) => Mypage()), (_) => false);
   }
 
   //sign in 用のmethod
-  Future<void> _signIn(BuildContext context,String email,String password) async{
-    try{
-      await userAuth.signInWithEmailAndPassword(email: email, password: password);
-      Navigator.pushAndRemoveUntil(
-          context, MaterialPageRoute(builder: (context) => Mypage()),(_) => false);
-    }catch(e){
+  Future<void> _signIn(
+      BuildContext context, String email, String password) async {
+    try {
+      await userAuth.signInWithEmailAndPassword(
+          email: email, password: password);
+      Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) => Mypage()), (_) => false);
+    } catch (e) {
       print(e);
       Fluttertoast.showToast(msg: "Firebaseのログインに失敗しました");
     }
@@ -59,224 +61,233 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     SizeConfig().init(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Text("AppName"),
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Container(
-            //幅-> 画面幅の60%
-            width: SizeConfig.blockSizeHorizontal! * 50,
-            color: Color(0xFF006788),
+        appBar: AppBar(
+          title: Text("Unlistedbin"),
+        ),
+        body: Center(
+          child: SingleChildScrollView(
             child: Container(
-              child: Padding(
-                padding: EdgeInsets.all(SizeConfig.blockSizeHorizontal! * 10),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      SizedBox(height: 100,),
-                      //email 用のTextfield
-                      TextFormField(
-                        controller: _emailController,
-                        decoration: InputDecoration(
-                          labelText: 'Mail Address',
-                          filled: true,
-                          fillColor: Colors.white,
+              //幅-> 画面幅の60%
+              width: SizeConfig.blockSizeHorizontal! * 50,
+              color: Color(0xFF006788),
+              child: Container(
+                child: Padding(
+                  padding: EdgeInsets.all(SizeConfig.blockSizeHorizontal! * 10),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: 100,
+                        ),
+                        //email 用のTextfield
+                        TextFormField(
+                          controller: _emailController,
+                          decoration: InputDecoration(
+                            labelText: 'Mail Address',
+                            filled: true,
+                            fillColor: Colors.white,
 
-                          //入力に問題があるとき -> 入力欄の周りが赤くなる
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: BorderSide(
-                              color: Colors.red,
-                              width: 3,
+                            //入力に問題があるとき -> 入力欄の周りが赤くなる
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide(
+                                color: Colors.red,
+                                width: 3,
+                              ),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide(
+                                color: Colors.red,
+                                width: 3,
+                              ),
                             ),
                           ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: BorderSide(
-                              color: Colors.red,
-                              width: 3,
+                          onSaved: (String? value) {
+                            // 前後の空白を削除して保存
+                            email = value!.trim();
+                          },
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'メールアドレスは必須項目です';
+                            }
+                            //正規表現チェック
+                            String emailPattern =
+                                r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+                            RegExp regex = RegExp(emailPattern);
+                            if (!regex.hasMatch(value.trim())) {
+                              return '正しいメールアドレスを入力してください';
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: 30),
+                        //password 用のTextfield
+                        TextFormField(
+                          controller: _passwordController,
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            filled: true,
+                            fillColor: Colors.white,
+
+                            //入力に問題があるとき -> 入力欄の周りが赤くなる
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide(
+                                color: Colors.red,
+                                width: 3,
+                              ),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide(
+                                color: Colors.red,
+                                width: 3,
+                              ),
+                            ),
+                          ),
+                          onSaved: (String? value) {
+                            // 前後の空白を削除して保存
+                            password = value!.trim();
+                          },
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'パスワードは必須項目です';
+                            } else if (value.length < 6) {
+                              return 'パスワードは6桁以上です';
+                            }
+                            // 記号が含まれていないか確認
+                            String specialCharPattern = r'[!@#\$&*~]';
+                            RegExp specialCharRegex =
+                                RegExp(specialCharPattern);
+                            if (specialCharRegex.hasMatch(value)) {
+                              return 'パスワードに記号を含めないでください';
+                            }
+                            // 英字と数字が含まれているか確認
+                            String passwordPattern =
+                                r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$';
+                            RegExp regex = RegExp(passwordPattern);
+                            if (!regex.hasMatch(value.trim())) {
+                              return 'パスワードは英字と数字の両方を含む必要があります';
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: 30),
+                        //Sign in ボタン
+                        ElevatedButton(
+                          onPressed: () async {
+                            //sign in押されたら -> firebase使ってsign in
+                            if (_formKey.currentState!.validate()) {
+                              _formKey.currentState!.save();
+                              await _signIn(context, email, password);
+                            }
+                          },
+                          child: Text(
+                            "Sign in",
+                            style: TextStyle(
+                              //ボタンの文字色
+                              color: Color(0xFF02607E),
+                              fontSize: 30,
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w400,
+                              height: 0,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                              //背景色
+                              backgroundColor: Colors.white),
+                        ),
+                        SizedBox(height: 30),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) {
+                                return Resetpasswd();
+                              },
+                            ));
+                          },
+                          child: Text(
+                            'Forget password?',
+                            style: TextStyle(
+                              color: Color(0xFF0500FF),
+                              fontSize: 30,
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w400,
+                              height: 0,
                             ),
                           ),
                         ),
-                        onSaved: (String? value){
-                          // 前後の空白を削除して保存
-                          email = value!.trim();
-                        },
-                        validator: (value){
-                          if(value!.isEmpty){
-                            return 'メールアドレスは必須項目です';
-                          }
-                          //正規表現チェック
-                          String emailPattern =
-                              r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
-                          RegExp regex = RegExp(emailPattern);
-                          if (!regex.hasMatch(value.trim())) {
-                            return '正しいメールアドレスを入力してください';
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: 30),
-                      //password 用のTextfield
-                      TextFormField(
-                        controller: _passwordController,
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          filled: true,
-                          fillColor: Colors.white,
+                        SizedBox(height: 30),
+                        Text(
+                          "Or with",
+                          style: TextStyle(color: Colors.white, fontSize: 20),
+                        ),
 
-                          //入力に問題があるとき -> 入力欄の周りが赤くなる
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: BorderSide(
-                              color: Colors.red,
-                              width: 3,
-                            ),
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: BorderSide(
-                              color: Colors.red,
-                              width: 3,
+                        //github ログイン用画像
+                        GestureDetector(
+                          child: Image.asset('images/github_mark.png'),
+                          onTap: () async {
+                            try {
+                              await _signInWithGitHub();
+                            } catch (e) {
+                              print("githubでsign in出来ません:$e");
+                            }
+                          },
+                        ),
+                        SizedBox(height: 30),
+                        //白い線
+                        Container(
+                          decoration: ShapeDecoration(
+                            shape: RoundedRectangleBorder(
+                              side: BorderSide(
+                                width: 1,
+                                strokeAlign: BorderSide.strokeAlignCenter,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
-                        onSaved: (String? value){
-                          // 前後の空白を削除して保存
-                          password = value!.trim();
-                        },
-                        validator: (value){
-                          if(value!.isEmpty){
-                            return 'パスワードは必須項目です';
-                          }else if(value.length<6){
-                            return 'パスワードは6桁以上です';
-                          }
-                          // 記号が含まれていないか確認
-                          String specialCharPattern = r'[!@#\$&*~]';
-                          RegExp specialCharRegex = RegExp(specialCharPattern);
-                          if (specialCharRegex.hasMatch(value)) {
-                            return 'パスワードに記号を含めないでください';
-                          }
-                          // 英字と数字が含まれているか確認
-                          String passwordPattern = r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$';
-                          RegExp regex = RegExp(passwordPattern);
-                          if (!regex.hasMatch(value.trim())) {
-                            return 'パスワードは英字と数字の両方を含む必要があります';
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: 30),
-                      //Sign in ボタン
-                      ElevatedButton(
-                        onPressed: () async{
-                        //sign in押されたら -> firebase使ってsign in
-                          if (_formKey.currentState!.validate()) {
-                            _formKey.currentState!.save();
-                            await _signIn(context, email, password);
-                          }
-                        },
-                        child: Text("Sign in",
-                          style: TextStyle(
-                            //ボタンの文字色
-                            color: Color(0xFF02607E),
-                            fontSize: 30,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w400,
-                            height: 0,
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Make new account?",
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 20),
                             ),
-                          ),
-                        style: ElevatedButton.styleFrom(
-                          //背景色
-                            backgroundColor: Colors.white
-                        ),
-                      ),
-                      SizedBox(height: 30),
-                      TextButton(
-                        onPressed: (){
-                          Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  return Resetpasswd();
-                                },
-                              ));
-                        },
-                        child: Text('Forget password?', style: TextStyle(color: Color(0xFF0500FF),
-                          fontSize: 30,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w400,
-                          height: 0,),
-                        ),
-                      ),
-                      SizedBox(height: 30),
-                      Text("Or with", style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20
-                      ),),
-
-                      //github ログイン用画像
-                      GestureDetector(
-                        child: Image.asset('images/github_mark.png'),
-                        onTap: () async{
-                          try{
-                            await _signInWithGitHub();
-                          }catch(e) {
-                            print("githubでsign in出来ません:$e");
-                          }
-                      },),
-                      SizedBox(height: 30),
-                      //白い線
-                      Container(
-                        decoration: ShapeDecoration(
-                          shape: RoundedRectangleBorder(
-                            side: BorderSide(
-                              width: 1,
-                              strokeAlign: BorderSide.strokeAlignCenter,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text("Make new account?", style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20
-                          ),),
-                          SizedBox(width: 10),
-                          TextButton(
-                            child: Text("Sign up", style: TextStyle(color: Color(0xFF0500FF),
-                            fontSize: 20,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w400,
-                            height: 0,)),
-                            onPressed: (){
-                              //sign up押されたら -> 新規登録
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return Register();
-                                  },
-                                ),
-                              );
-                            },
-
-                          )
-
-                        ],
-                      )
-                    ],
+                            SizedBox(width: 10),
+                            TextButton(
+                              child: Text("Sign up",
+                                  style: TextStyle(
+                                    color: Color(0xFF0500FF),
+                                    fontSize: 20,
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w400,
+                                    height: 0,
+                                  )),
+                              onPressed: () {
+                                //sign up押されたら -> 新規登録
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return Register();
+                                    },
+                                  ),
+                                );
+                              },
+                            )
+                          ],
+                        )
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      )
-    );
+        ));
   }
 }

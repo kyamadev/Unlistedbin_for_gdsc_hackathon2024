@@ -12,8 +12,8 @@ class Resetpasswd extends StatefulWidget {
 }
 
 class _ResetpasswdState extends State<Resetpasswd> {
-  final GlobalKey<FormState> _formKey= GlobalKey<FormState>();
-  String email="";
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  String email = "";
   TextEditingController _emailController = TextEditingController();
 
   @override
@@ -21,7 +21,7 @@ class _ResetpasswdState extends State<Resetpasswd> {
     SizeConfig().init(context);
     return Scaffold(
         appBar: AppBar(
-          title: Text("AppName"),
+          title: Text("Unlistedbin"),
         ),
         body: Center(
           child: SingleChildScrollView(
@@ -36,7 +36,9 @@ class _ResetpasswdState extends State<Resetpasswd> {
                     key: _formKey,
                     child: Column(
                       children: [
-                        SizedBox(height: 100,),
+                        SizedBox(
+                          height: 100,
+                        ),
                         //email 用のTextfield
                         TextFormField(
                           controller: _emailController,
@@ -60,13 +62,13 @@ class _ResetpasswdState extends State<Resetpasswd> {
                               ),
                             ),
                           ),
-                          onSaved: (String? value){
-                            email=value!;
+                          onSaved: (String? value) {
+                            email = value!;
                           },
-                          validator: (value){
-                            if(value!.isEmpty){
+                          validator: (value) {
+                            if (value!.isEmpty) {
                               return 'メールアドレスは必須項目です';
-                            }else {
+                            } else {
                               return null;
                             }
                           },
@@ -75,21 +77,21 @@ class _ResetpasswdState extends State<Resetpasswd> {
 
                         //password resetボタン
                         ElevatedButton(
-                          onPressed: () async{
+                          onPressed: () async {
                             //sign in押されたら -> firebase使ってsign in
                             if (_formKey.currentState!.validate()) {
                               _formKey.currentState!.save();
-                              try{
-                                await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+                              try {
+                                await FirebaseAuth.instance
+                                    .sendPasswordResetEmail(email: email);
                                 Fluttertoast.showToast(msg: 'メールを送信しました');
-
-                              }catch(e){
+                              } catch (e) {
                                 Fluttertoast.showToast(msg: 'メールを送信できませんでした');
                               }
-
                             }
                           },
-                          child: Text("password reset",
+                          child: Text(
+                            "password reset",
                             style: TextStyle(
                               //ボタンの文字色
                               color: Color(0xFF02607E),
@@ -100,9 +102,8 @@ class _ResetpasswdState extends State<Resetpasswd> {
                             ),
                           ),
                           style: ElevatedButton.styleFrom(
-                            //背景色
-                              backgroundColor: Colors.white
-                          ),
+                              //背景色
+                              backgroundColor: Colors.white),
                         ),
                       ],
                     ),
@@ -111,7 +112,6 @@ class _ResetpasswdState extends State<Resetpasswd> {
               ),
             ),
           ),
-        )
-    );
+        ));
   }
 }

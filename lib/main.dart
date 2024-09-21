@@ -5,8 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:for_gdsc_2024/view/repository.dart';
 import 'package:for_gdsc_2024/view/startup/start.dart';
-import 'package:for_gdsc_2024/view/components/changeNotifire.dart'; 
-import 'package:flutter/foundation.dart'; 
+import 'package:for_gdsc_2024/view/components/changeNotifire.dart';
+import 'package:flutter/foundation.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,32 +31,35 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(  // マルチプロバイダーを使用して複数のプロバイダーを提供可能
+    return MultiProvider(
+      // マルチプロバイダーを使用して複数のプロバイダーを提供可能
       providers: [
         ChangeNotifierProvider<AppUserProvider>(
-          create: (_) => AppUserProvider(),  // AppUserProviderのインスタンスを作成
+          create: (_) => AppUserProvider(), // AppUserProviderのインスタンスを作成
         ),
       ],
       child: MaterialApp(
-        title: 'Flutter Demo',
+        title: 'Unlistedbin',
         theme: ThemeData(
           appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFF0E607E),  // AppBarの背景色
-            foregroundColor: Colors.white,       // AppBarの文字色
+            backgroundColor: Color(0xFF0E607E), // AppBarの背景色
+            foregroundColor: Colors.white, // AppBarの文字色
           ),
-          scaffoldBackgroundColor: const Color(0xFF00413E),  // 背景色
+          scaffoldBackgroundColor: const Color(0xFF00413E), // 背景色
           useMaterial3: true,
         ),
         onGenerateRoute: (settings) {
           String routeName = settings.name ?? '/';
           if (kIsWeb && routeName == '/') {
-            routeName = Uri.base.path + (Uri.base.hasQuery ? '?${Uri.base.query}' : '');
+            routeName =
+                Uri.base.path + (Uri.base.hasQuery ? '?${Uri.base.query}' : '');
           }
 
           final Uri uri = Uri.parse(routeName);
           print('Navigated to: $routeName');
 
-          if (uri.pathSegments.length == 2 && uri.pathSegments.first == 'repo') {
+          if (uri.pathSegments.length == 2 &&
+              uri.pathSegments.first == 'repo') {
             String repoId = uri.pathSegments[1];
             return MaterialPageRoute(
               builder: (context) => RepositoryScreen(repoId: repoId),

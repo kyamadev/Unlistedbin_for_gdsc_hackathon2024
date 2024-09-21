@@ -15,42 +15,44 @@ class Register extends StatefulWidget {
   State<Register> createState() => _RegisterState();
 }
 
-
 class _RegisterState extends State<Register> {
-  final GlobalKey<FormState> _formKey= GlobalKey<FormState>();
-  String displayname="";
-  String email="";
-  String password="";
-  String passwdConfirm="";
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  String displayname = "";
+  String email = "";
+  String password = "";
+  String passwdConfirm = "";
 
   TextEditingController _displaynameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   TextEditingController _passwdConfirmController = TextEditingController();
 
-
-  final userAuth =FirebaseAuth.instance;
+  final userAuth = FirebaseAuth.instance;
 
   GithubAuthProvider githubProvider = GithubAuthProvider();
 
   //githubでsign in,sign up
   Future _signInWithGitHub() async {
     await FirebaseAuth.instance.signInWithPopup(githubProvider);
-    Navigator.pushAndRemoveUntil(
-        context, MaterialPageRoute(builder: (context) => Mypage()),(_) => false);
+    Navigator.pushAndRemoveUntil(context,
+        MaterialPageRoute(builder: (context) => Mypage()), (_) => false);
   }
 
   //新規ユーザ情報登録用
   final AppUser _newUser = AppUser();
 
   //sign up 用のmethod
-  Future<void> _createUser(BuildContext context, String email, String password) async {
+  Future<void> _createUser(
+      BuildContext context, String email, String password) async {
     try {
       // Firebase Authentication にユーザーを作成
-      UserCredential userCredential= await userAuth.createUserWithEmailAndPassword(email: email, password: password);
+      UserCredential userCredential = await userAuth
+          .createUserWithEmailAndPassword(email: email, password: password);
 
       // Firestore のドキュメントリファレンスを取得（ユーザーIDを基に保存先を決定）
-      DocumentReference userDocRef = FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid);
+      DocumentReference userDocRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid);
 
       // Firestore にユーザー情報を保存
       _newUser.username = _displaynameController.text;
@@ -59,8 +61,8 @@ class _RegisterState extends State<Register> {
 
       await _setUser(userDocRef);
 
-      Navigator.pushAndRemoveUntil(
-          context, MaterialPageRoute(builder: (context) => Mypage()),(_) => false);
+      Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) => Mypage()), (_) => false);
     } catch (e) {
       print(e);
       Fluttertoast.showToast(msg: "Firebaseの登録に失敗しました");
@@ -68,16 +70,16 @@ class _RegisterState extends State<Register> {
   }
 
   //user情報をfirebaseに格納する
-  Future<void> _setUser(DocumentReference _mainReference)async {
-    try{
+  Future<void> _setUser(DocumentReference _mainReference) async {
+    try {
       _formKey.currentState!.save();
       await _mainReference.set({
-        'username':_newUser.username,
-        'email':_newUser.email,
-        'created_at':_newUser.created_at
+        'username': _newUser.username,
+        'email': _newUser.email,
+        'created_at': _newUser.created_at
       });
       Fluttertoast.showToast(msg: "ユーザ情報の保存に成功しました");
-    }catch(e){
+    } catch (e) {
       Fluttertoast.showToast(msg: "ユーザ情報の保存に失敗しました");
     }
   }
@@ -87,7 +89,7 @@ class _RegisterState extends State<Register> {
     SizeConfig().init(context);
     return Scaffold(
         appBar: AppBar(
-          title: Text("AppName"),
+          title: Text("Unlistedbin"),
         ),
         body: Center(
           child: SingleChildScrollView(
@@ -102,7 +104,9 @@ class _RegisterState extends State<Register> {
                     key: _formKey,
                     child: Column(
                       children: [
-                        SizedBox(height: 30,),
+                        SizedBox(
+                          height: 30,
+                        ),
                         TextFormField(
                           controller: _displaynameController,
                           decoration: InputDecoration(
@@ -126,18 +130,20 @@ class _RegisterState extends State<Register> {
                               ),
                             ),
                           ),
-                          onSaved: (String? value){
-                            displayname=value!;
+                          onSaved: (String? value) {
+                            displayname = value!;
                           },
-                          validator: (value){
-                            if(value!.isEmpty){
+                          validator: (value) {
+                            if (value!.isEmpty) {
                               return '名前は必須項目です';
-                            }else {
+                            } else {
                               return null;
                             }
                           },
                         ),
-                        SizedBox(height: 30,),
+                        SizedBox(
+                          height: 30,
+                        ),
                         TextFormField(
                           controller: _emailController,
                           decoration: InputDecoration(
@@ -162,11 +168,11 @@ class _RegisterState extends State<Register> {
                               ),
                             ),
                           ),
-                          onSaved: (String? value){
-                            email=value!;
+                          onSaved: (String? value) {
+                            email = value!;
                           },
-                          validator: (value){
-                            if(value!.isEmpty){
+                          validator: (value) {
+                            if (value!.isEmpty) {
                               return 'メールアドレスは必須項目です';
                             }
                             //正規表現チェック
@@ -203,23 +209,25 @@ class _RegisterState extends State<Register> {
                               ),
                             ),
                           ),
-                          onSaved: (String? value){
-                            password=value!;
+                          onSaved: (String? value) {
+                            password = value!;
                           },
-                          validator: (value){
-                            if(value!.isEmpty){
+                          validator: (value) {
+                            if (value!.isEmpty) {
                               return 'パスワードは必須項目です';
-                            }else if(value.length<6){
+                            } else if (value.length < 6) {
                               return 'パスワードは6桁以上です';
                             }
                             // 記号が含まれていないか確認
                             String specialCharPattern = r'[!@#\$&*~]';
-                            RegExp specialCharRegex = RegExp(specialCharPattern);
+                            RegExp specialCharRegex =
+                                RegExp(specialCharPattern);
                             if (specialCharRegex.hasMatch(value)) {
                               return 'パスワードに記号を含めないでください';
                             }
                             // 英字と数字が含まれているか確認
-                            String passwordPattern = r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$';
+                            String passwordPattern =
+                                r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$';
                             RegExp regex = RegExp(passwordPattern);
                             if (!regex.hasMatch(value.trim())) {
                               return 'パスワードは英字と数字の両方を含む必要があります';
@@ -251,11 +259,11 @@ class _RegisterState extends State<Register> {
                               ),
                             ),
                           ),
-                          onSaved: (String? value){
-                            passwdConfirm=value!;
+                          onSaved: (String? value) {
+                            passwdConfirm = value!;
                           },
-                          validator: (value){
-                            if(passwdConfirm!=password){
+                          validator: (value) {
+                            if (passwdConfirm != password) {
                               return 'パスワードが一致しません';
                             } else {
                               return null;
@@ -264,14 +272,16 @@ class _RegisterState extends State<Register> {
                         ),
                         SizedBox(height: 30),
                         ElevatedButton(
-                          onPressed: () async{
+                          onPressed: () async {
                             //sign in押されたら -> firebase使ってsign in
                             if (_formKey.currentState!.validate()) {
                               _formKey.currentState!.save();
                               await _createUser(context, email, password);
                             }
                           },
-                          child: Text("Sign up", style: TextStyle(
+                          child: Text(
+                            "Sign up",
+                            style: TextStyle(
                               //ボタンの文字色
                               color: Colors.white,
                               fontSize: 30,
@@ -281,27 +291,27 @@ class _RegisterState extends State<Register> {
                             ),
                           ),
                           style: ElevatedButton.styleFrom(
-                            //背景色
-                              backgroundColor: Color(0xFF00413E)
-                          ),
+                              //背景色
+                              backgroundColor: Color(0xFF00413E)),
                         ),
 
                         SizedBox(height: 30),
-                        Text("Or with", style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20
-                        ),),
+                        Text(
+                          "Or with",
+                          style: TextStyle(color: Colors.white, fontSize: 20),
+                        ),
 
                         //github ログイン用画像
                         GestureDetector(
                           child: Image.asset('images/github_mark.png'),
-                          onTap: () async{
-                            try{
+                          onTap: () async {
+                            try {
                               await _signInWithGitHub();
-                            }catch(e) {
+                            } catch (e) {
                               print("githubでsign up出来ません:$e");
                             }
-                          },),
+                          },
+                        ),
                         SizedBox(height: 30),
                         //白い線
                         Container(
@@ -319,18 +329,22 @@ class _RegisterState extends State<Register> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text("Already have account?", style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20
-                            ),),
+                            Text(
+                              "Already have account?",
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 20),
+                            ),
                             SizedBox(width: 10),
                             TextButton(
-                              child: Text("Sign in", style: TextStyle(color: Color(0xFF0500FF),
-                                fontSize: 20,
-                                fontFamily: 'Inter',
-                                fontWeight: FontWeight.w400,
-                                height: 0,)),
-                              onPressed: (){
+                              child: Text("Sign in",
+                                  style: TextStyle(
+                                    color: Color(0xFF0500FF),
+                                    fontSize: 20,
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w400,
+                                    height: 0,
+                                  )),
+                              onPressed: () {
                                 //sign up押されたら -> 新規登録
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
@@ -350,7 +364,6 @@ class _RegisterState extends State<Register> {
               ),
             ),
           ),
-        )
-    );
+        ));
   }
 }
