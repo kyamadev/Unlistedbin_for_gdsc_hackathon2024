@@ -31,13 +31,32 @@ class _RegisterState extends State<Register> {
 
   final userAuth = FirebaseAuth.instance;
 
-  GithubAuthProvider githubProvider = GithubAuthProvider();
-
   //githubでsign in,sign up
   Future _signInWithGitHub() async {
-    await FirebaseAuth.instance.signInWithPopup(githubProvider);
-    Navigator.pushAndRemoveUntil(context,
-        MaterialPageRoute(builder: (context) => Mypage()), (_) => false);
+    try {
+      final GithubAuthProvider githubProvider = GithubAuthProvider();
+      final UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithPopup(githubProvider);
+
+      // ユーザー情報を取得
+      final User? user = userCredential.user;
+      if (user != null) {
+        final String? username = user.displayName;
+        print('GitHub ユーザー名: $username');
+
+        DocumentReference userDocRef =
+            FirebaseFirestore.instance.collection('users').doc(user.uid);
+        await userDocRef.set({
+          'username': user.displayName,
+          'email': user.email,
+          'created_at': DateTime.now()
+        });
+      }
+      Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) => Mypage()), (_) => false);
+    } catch (e) {
+      print('GitHub ログインエラー: $e');
+    }
   }
 
   //新規ユーザ情報登録用
@@ -357,12 +376,14 @@ class _RegisterState extends State<Register> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Flexible(child: Text(
-                              "Already have account?",
-                              style:
-                              TextStyle(color: Colors.white, fontSize: 20),
-                              overflow: TextOverflow.ellipsis,
-                            ),),
+                            Flexible(
+                              child: Text(
+                                "Already have account?",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 20),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                             SizedBox(width: 10),
                             TextButton(
                               child: Text("Sign in",
