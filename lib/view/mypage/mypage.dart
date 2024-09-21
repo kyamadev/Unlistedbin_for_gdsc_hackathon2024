@@ -249,6 +249,7 @@ class _MypageState extends State<Mypage> {
         'url_key': "$appUrl/repo/$repositoryId",
         'created_at': Timestamp.now(),
         'updated_at': Timestamp.now(),
+        'mode':0,//誰でも閲覧可能にしている
       });
 
       print('リポジトリメタデータを保存しました: $repositoryId');

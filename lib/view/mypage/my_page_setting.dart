@@ -21,12 +21,11 @@ class MyPageSetting extends StatefulWidget {
 }
 
 class _MyPageSettingState extends State<MyPageSetting> {
-  int _privacyVal=0;
+  int _privacyVal=0; //初めはUnlisted
   final userAuth = FirebaseAuth.instance;
   String url_key="";
   String reponame="";
   bool isDisposed = false;  // disposeされたかを追跡
-
 
   @override
   void initState(){
@@ -147,6 +146,32 @@ class _MyPageSettingState extends State<MyPageSetting> {
 
   }
 
+  Future<void> _setMode(int mode) async{
+    if(userAuth.currentUser!=null){
+      //ユーザがしっかりログインしている場合
+      try{
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userAuth.currentUser!.uid)
+            .collection('repositories')
+            .doc(widget.repoId)
+            .update({ 'mode': mode });
+        print("modeを登録した$mode");
+        if(mode==0){
+          Fluttertoast.showToast(msg: "誰でも見れるようになりました");
+        }else{
+          Fluttertoast.showToast(msg: "閲覧制限が掛かりました");
+        }
+
+      }catch(e){
+        print("Error fetching repository: $e");
+      }
+
+    }else{
+      print("userがログインしていません");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -237,45 +262,85 @@ class _MyPageSettingState extends State<MyPageSetting> {
 
                       //対象のURLのモードを選択
                       Text(
-                        "Change mode",
+                        "Mode",
                         style: TextStyle(color: Colors.white, fontSize: 20),
                       ),
-                      //radioボタン unlisted
+                      SizedBox(height: 20),
+                      // Radioボタン private
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Radio(
                             value: 0,
                             groupValue: _privacyVal,
-                            onChanged: (value){
+                            onChanged: (value) {
                               setState(() {
-                                _privacyVal=value!;
+                                _privacyVal = value!;
+                                print("_privacyVal:$_privacyVal");
+                                _setMode(_privacyVal);
                               });
-                            }
-                            ),
+                            },
+                          ),
                           SizedBox(width: 10.0),
-                          const Flexible(child: FittedBox(child: Text('Unlisted (anyone with the link can view)',
-                            style: TextStyle(color: Colors.white, fontSize: 20),))
+                          const Flexible(
+                            child: FittedBox(
+                              child: Text(
+                                'Unlisted (anyone with the link can view)',
+                                style: TextStyle(color: Colors.white, fontSize: 20),
+                              ),
+                            ),
                           ),
                         ],
                       ),
                       SizedBox(height: 30),
-                      //radioボタン private
+                      //radioボタン unlisted
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Radio(
-                              value: 1,
-                              groupValue: _privacyVal,
-                              onChanged: (value){
+                            value: 1,
+                            groupValue: _privacyVal,
+                            onChanged: (value) async {
+                              bool? confirm = await showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text("モード変更"),
+                                  content: Text("限定公開になります"),
+                                  actions: [
+                                    TextButton(
+                                      child: Text("キャンセル"),
+                                      onPressed: () {
+                                        Navigator.of(context).pop(false); // キャンセルを返す
+                                      },
+                                    ),
+                                    TextButton(
+                                      child: Text("はい"),
+                                      onPressed: () {
+                                        Navigator.of(context).pop(true); // モード変更を許可
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirm == true) {
                                 setState(() {
-                                  _privacyVal=value!;
+                                  _privacyVal = value!;
+                                  _setMode(_privacyVal);
+                                  print("変更done: $_privacyVal");
                                 });
                               }
+                            },
                           ),
                           SizedBox(width: 10.0),
-                          Flexible(child: FittedBox(child: Text('Private (Share URL or disabled)',
-                            style: TextStyle(color: Colors.white, fontSize: 20),),)),
+                          const Flexible(
+                            child: FittedBox(
+                              child: Text(
+                                'Private (Share URL or disabled)',
+                                style: TextStyle(color: Colors.white, fontSize: 20),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ],
