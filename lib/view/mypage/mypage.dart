@@ -24,7 +24,7 @@ class Mypage extends StatefulWidget {
 class _MypageState extends State<Mypage> {
   late String userId; // 現在のユーザーIDを保持
   List<String> repositoryNames = []; // 取得したリポジトリ名を保持
-  List<String> repositoryIds= [];// 取得したリポジトリidを保持
+  List<String> repositoryIds = []; // 取得したリポジトリidを保持
 
   bool isLoading = true; // ローディング状態の管理
   String appUrl = html.window.location.origin;
@@ -78,8 +78,7 @@ class _MypageState extends State<Mypage> {
       // 取得したドキュメントからリポジトリ名をリストに追加
       final List<String> repoNames =
           snapshot.docs.map((doc) => doc['name'] as String).toList();
-      final List<String> repoIds =
-      snapshot.docs.map((doc) => doc.id).toList();
+      final List<String> repoIds = snapshot.docs.map((doc) => doc.id).toList();
 
       setState(() {
         repositoryNames = repoNames;
@@ -103,7 +102,9 @@ class _MypageState extends State<Mypage> {
         .listen((snapshot) {
       final List<String> repoNames = snapshot.docs.map((doc) {
         // 'name' フィールドが null かどうかをチェック
-        return doc.data().containsKey('name') ? doc['name'] as String : 'Unnamed';
+        return doc.data().containsKey('name')
+            ? doc['name'] as String
+            : 'Unnamed';
       }).toList();
 
       final List<String> repoIds = snapshot.docs.map((doc) {
@@ -184,7 +185,8 @@ class _MypageState extends State<Mypage> {
                 child: ListView.builder(
                   itemCount: repositoryNames.length,
                   itemBuilder: (context, index) {
-                    return _buildRepoItem(repositoryNames[index],repositoryIds[index]); // リポジトリ名を表示
+                    return _buildRepoItem(repositoryNames[index],
+                        repositoryIds[index]); // リポジトリ名を表示
                   },
                 ),
               ),
@@ -223,10 +225,7 @@ class _MypageState extends State<Mypage> {
 
           // Firebase Storageにファイルをアップロード
           await _uploadFile(file, storagePath);
-          Fluttertoast.showToast(
-              msg: 'ファイルをアップロードしています: ${file.name}',
-              textColor: Colors.white,
-              timeInSecForIosWeb: 2);
+          Fluttertoast.showToast(msg: 'ファイルをアップロードしています: ${file.name}');
         }
       }
     });
@@ -249,7 +248,7 @@ class _MypageState extends State<Mypage> {
         'url_key': "$appUrl/repo/$repositoryId",
         'created_at': Timestamp.now(),
         'updated_at': Timestamp.now(),
-        'mode':0,//誰でも閲覧可能にしている
+        'mode': 0, //誰でも閲覧可能にしている
       });
 
       print('リポジトリメタデータを保存しました: $repositoryId');
@@ -268,10 +267,7 @@ class _MypageState extends State<Mypage> {
       await uploadTask.whenComplete(() async {
         String downloadUrl = await storageRef.getDownloadURL();
         print('ファイルアップロード完了: ${file.name}, URL: $downloadUrl');
-        Fluttertoast.showToast(
-            msg: 'ファイルアップロード完了: ${file.name}',
-            textColor: Colors.white,
-            timeInSecForIosWeb: 2);
+        Fluttertoast.showToast(msg: 'ファイルアップロード完了: ${file.name}');
       });
     } catch (e) {
       print('ファイルのアップロード中にエラーが発生しました: $e');
@@ -320,8 +316,7 @@ class _MypageState extends State<Mypage> {
             icon: Icon(Icons.content_paste, color: Colors.white),
             onPressed: () {
               // クリップボードボタンが押されたときの処理
-              Clipboard.setData(
-                  ClipboardData(text: '$appUrl/repo/${repoId}'));
+              Clipboard.setData(ClipboardData(text: '$appUrl/repo/${repoId}'));
               Fluttertoast.showToast(
                   msg: 'Copied!',
                   textColor: Colors.white,
@@ -332,8 +327,10 @@ class _MypageState extends State<Mypage> {
             icon: Icon(Icons.settings, color: Colors.white),
             onPressed: () {
               // 設定ボタンが押された -> MyPageSetting へ画面遷移
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => MyPageSetting(repoId: repoId)));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => MyPageSetting(repoId: repoId)));
             },
           ),
         ],

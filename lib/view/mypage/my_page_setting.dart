@@ -5,44 +5,42 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:for_gdsc_2024/view/mypage/mypage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../config/size_config.dart';
 import '../components/mypage_appbar.dart';
 
-
 class MyPageSetting extends StatefulWidget {
   final String repoId;
-  const MyPageSetting({
-    Key? key,required this.repoId
-  }): super(key: key);
+  const MyPageSetting({Key? key, required this.repoId}) : super(key: key);
 
   @override
   State<MyPageSetting> createState() => _MyPageSettingState();
 }
 
 class _MyPageSettingState extends State<MyPageSetting> {
-  int _privacyVal=0; //初めはUnlisted
+  int _privacyVal = 0; //初めはUnlisted
   final userAuth = FirebaseAuth.instance;
-  String url_key="";
-  String reponame="";
-  bool isDisposed = false;  // disposeされたかを追跡
+  String url_key = "";
+  String reponame = "";
+  bool isDisposed = false; // disposeされたかを追跡
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     _fetchRepository();
   }
 
   @override
   void dispose() {
-    isDisposed = true;  // disposeの状態を追跡
+    isDisposed = true; // disposeの状態を追跡
     super.dispose();
   }
 
-  Future<void> _fetchRepository() async{
-    if(userAuth.currentUser!=null){
+  Future<void> _fetchRepository() async {
+    if (userAuth.currentUser != null) {
       //ユーザがしっかりログインしている場合
-      try{
+      try {
         DocumentSnapshot snapshot = await FirebaseFirestore.instance
             .collection('users')
             .doc(userAuth.currentUser!.uid)
@@ -51,43 +49,39 @@ class _MyPageSettingState extends State<MyPageSetting> {
             .get();
 
         //レポジトリの名前とurl_keyを設定
-        if (!isDisposed && mounted) {  // mountedがtrueのときのみsetState()を呼び出す
+        if (!isDisposed && mounted) {
+          // mountedがtrueのときのみsetState()を呼び出す
           setState(() {
             reponame = snapshot.get('name') as String;
             url_key = snapshot.get('url_key') as String;
           });
         }
-
-      }catch(e){
+      } catch (e) {
         print("Error fetching repository: $e");
       }
-
-    }else{
+    } else {
       print("userがログインしていません");
     }
   }
 
   //指定されたrepository の削除
-  Future<void> _deleteRepository() async{
+  Future<void> _deleteRepository() async {
     //アカウントからぬける
     bool? confirm = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        content:
-        Text("本当にしてもよろしいですか？"),
+        content: Text("本当にしてもよろしいですか？"),
         actions: [
           TextButton(
             child: Text("キャンセル"),
             onPressed: () {
-              Navigator.of(context).pop(
-                  false); // キャンセルを返す
+              Navigator.of(context).pop(false); // キャンセルを返す
             },
           ),
           TextButton(
             child: Text("はい"),
             onPressed: () {
-              Navigator.of(context).pop(
-                  true); // 削除を返す
+              Navigator.of(context).pop(true); // 削除を返す
             },
           ),
         ],
@@ -97,8 +91,10 @@ class _MyPageSettingState extends State<MyPageSetting> {
       // ログインしているか確認
       if (userAuth.currentUser != null) {
         try {
+          Fluttertoast.showToast(msg: '削除しています...');
           //　フォルダ内のすべてのファイルを削除
-          await _deleteFolder('repositories/${userAuth.currentUser!.uid}/${widget.repoId}/');
+          await _deleteFolder(
+              'repositories/${userAuth.currentUser!.uid}/${widget.repoId}/');
 
           // ドキュメントを削除
           await FirebaseFirestore.instance
@@ -107,32 +103,31 @@ class _MyPageSettingState extends State<MyPageSetting> {
               .collection('repositories')
               .doc(widget.repoId)
               .delete();
-
           print('リポジトリとそのフォルダが削除されました: ${widget.repoId}');
+          Fluttertoast.showToast(msg: '削除されました');
           // 削除が完了したらナビゲーション
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => Mypage()),
-                (_) => false,
+            (_) => false,
           );
         } catch (e) {
           print("リポジトリ削除中にエラーが発生しました: $e");
-          Fluttertoast.showToast(msg:"リポジトリ削除中にエラーが発生しました: $e");
+          Fluttertoast.showToast(msg: "リポジトリ削除中にエラーが発生しました: $e");
           // エラーハンドリング（例: エラーメッセージを表示する）);
         }
       } else {
         // ユーザーがログインしていない場合の処理
         print("ユーザーがログインしていません");
-        Fluttertoast.showToast(msg:"ユーザーがログインしていません");
-
+        Fluttertoast.showToast(msg: "ユーザーがログインしていません");
       }
     }
-
   }
 
-  Future<void> _deleteFolder(String folderPath) async{
+  Future<void> _deleteFolder(String folderPath) async {
     //フォルダ内の全てのファイルを取得
-    final ListResult result = await FirebaseStorage.instance.ref(folderPath).listAll();
+    final ListResult result =
+        await FirebaseStorage.instance.ref(folderPath).listAll();
     // フォルダ内のファイルを1つずつ削除
     for (Reference fileRef in result.items) {
       await fileRef.delete();
@@ -143,31 +138,28 @@ class _MyPageSettingState extends State<MyPageSetting> {
     for (Reference prefix in result.prefixes) {
       await _deleteFolder(prefix.fullPath);
     }
-
   }
 
-  Future<void> _setMode(int mode) async{
-    if(userAuth.currentUser!=null){
+  Future<void> _setMode(int mode) async {
+    if (userAuth.currentUser != null) {
       //ユーザがしっかりログインしている場合
-      try{
+      try {
         await FirebaseFirestore.instance
             .collection('users')
             .doc(userAuth.currentUser!.uid)
             .collection('repositories')
             .doc(widget.repoId)
-            .update({ 'mode': mode });
+            .update({'mode': mode});
         print("modeを登録した$mode");
-        if(mode==0){
+        if (mode == 0) {
           Fluttertoast.showToast(msg: "誰でも見れるようになりました");
-        }else{
+        } else {
           Fluttertoast.showToast(msg: "閲覧制限が掛かりました");
         }
-
-      }catch(e){
+      } catch (e) {
         print("Error fetching repository: $e");
       }
-
-    }else{
+    } else {
       print("userがログインしていません");
     }
   }
@@ -175,7 +167,7 @@ class _MyPageSettingState extends State<MyPageSetting> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(),
+        appBar: CustomAppBar(),
         body: Center(
           child: SingleChildScrollView(
             child: Container(
@@ -196,15 +188,16 @@ class _MyPageSettingState extends State<MyPageSetting> {
                       ),
                       //レポジトリ名を表示
                       Container(
-                        width: SizeConfig.blockSizeHorizontal! * 50,
+                          width: SizeConfig.blockSizeHorizontal! * 50,
                           padding: EdgeInsets.all(8),
                           color: Colors.white,
                           child: Text(
                             reponame,
-                            maxLines: null,  // 行数を制限しない
-                            softWrap: true,  // 折り返しを許可
+                            maxLines: null, // 行数を制限しない
+                            softWrap: true, // 折り返しを許可
                             style: TextStyle(color: Colors.black, fontSize: 20),
-                            overflow: TextOverflow.ellipsis,)),
+                            overflow: TextOverflow.ellipsis,
+                          )),
 
                       SizedBox(height: 30),
                       //URL を表示
@@ -218,10 +211,16 @@ class _MyPageSettingState extends State<MyPageSetting> {
                           color: Colors.white,
                           child: Row(
                             children: [
-                              Flexible(child: Text(url_key,
-                                style: TextStyle(color: Colors.black, fontSize: 20),),),
+                              Flexible(
+                                child: Text(
+                                  url_key,
+                                  style: TextStyle(
+                                      color: Colors.black, fontSize: 20),
+                                ),
+                              ),
                               IconButton(
-                                icon: Icon(Icons.content_paste, color: Colors.black54),
+                                icon: Icon(Icons.content_paste,
+                                    color: Colors.black54),
                                 onPressed: () {
                                   // クリップボードボタンが押されたときの処理
                                   Clipboard.setData(
@@ -240,7 +239,8 @@ class _MyPageSettingState extends State<MyPageSetting> {
                         child: const Text('Regenerate URL'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
-                          backgroundColor:Color(0xff878702),shape: const StadiumBorder(),
+                          backgroundColor: Color(0xff878702),
+                          shape: const StadiumBorder(),
                           side: const BorderSide(color: Colors.white),
                         ),
                         onPressed: () {},
@@ -251,10 +251,11 @@ class _MyPageSettingState extends State<MyPageSetting> {
                         child: const Text('Delete repository'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
-                          backgroundColor:Color(0xff870202),shape: const StadiumBorder(),
+                          backgroundColor: Color(0xff870202),
+                          shape: const StadiumBorder(),
                           side: const BorderSide(color: Colors.white),
                         ),
-                        onPressed: () async{
+                        onPressed: () async {
                           _deleteRepository();
                         },
                       ),
@@ -286,7 +287,8 @@ class _MyPageSettingState extends State<MyPageSetting> {
                             child: FittedBox(
                               child: Text(
                                 'Unlisted (anyone with the link can view)',
-                                style: TextStyle(color: Colors.white, fontSize: 20),
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 20),
                               ),
                             ),
                           ),
@@ -310,13 +312,15 @@ class _MyPageSettingState extends State<MyPageSetting> {
                                     TextButton(
                                       child: Text("キャンセル"),
                                       onPressed: () {
-                                        Navigator.of(context).pop(false); // キャンセルを返す
+                                        Navigator.of(context)
+                                            .pop(false); // キャンセルを返す
                                       },
                                     ),
                                     TextButton(
                                       child: Text("はい"),
                                       onPressed: () {
-                                        Navigator.of(context).pop(true); // モード変更を許可
+                                        Navigator.of(context)
+                                            .pop(true); // モード変更を許可
                                       },
                                     ),
                                   ],
@@ -337,7 +341,8 @@ class _MyPageSettingState extends State<MyPageSetting> {
                             child: FittedBox(
                               child: Text(
                                 'Private (Share URL or disabled)',
-                                style: TextStyle(color: Colors.white, fontSize: 20),
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 20),
                               ),
                             ),
                           ),
