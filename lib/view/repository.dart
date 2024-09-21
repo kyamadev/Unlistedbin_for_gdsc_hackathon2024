@@ -77,6 +77,7 @@ class _RepositoryState extends State<RepositoryScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text("{reponame} by {ownername}", style: TextStyle(fontSize: 20, color: Colors.white)),
             SizedBox(height: 20),
             if (isLoading)
               Center(child: CircularProgressIndicator())
