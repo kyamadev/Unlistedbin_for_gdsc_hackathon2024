@@ -81,14 +81,21 @@ class _RepositoryState extends State<RepositoryScreen> {
             if (isLoading)
               Center(child: CircularProgressIndicator())
             else
-              Expanded(
-                child: ListView.builder(
-                  itemCount: content.length,
-                  itemBuilder: (context, index) {
-                    return _FolderOrFile(content[index], index); // ファイルまたはフォルダ名を表示
-                  },
-                ),
+             Expanded(
+              child: ListView.builder(
+                itemCount: widget.path.isEmpty ? content.length : content.length + 1,  // 「..」を表示するかしないか
+                itemBuilder: (context, index) {
+                  if (widget.path.isNotEmpty && index == 0) {
+                    // 「..」を表示 (pathが空でない場合)
+                    return _backFile();
+                  } else {
+                    // それ以外のアイテムを表示
+                    final contentIndex = widget.path.isEmpty ? index : index - 1;
+                    return _FolderOrFile(content[contentIndex], contentIndex);
+                  }
+                },
               ),
+            ),
           ],
         ),
       ),
@@ -168,4 +175,34 @@ class _RepositoryState extends State<RepositoryScreen> {
       ),
     );
   }
+
+  Widget _backFile() {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 2),
+      padding: EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white),
+        color: Colors.black,
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.folder, color: Colors.white),
+          SizedBox(width: 10),
+          Expanded(
+            child: TextButton(
+              onPressed: () {
+                // フォルダが選択されたときの処理
+                 Navigator.pop(context);
+              },
+              child: Align(
+                alignment: Alignment.centerLeft, // テキストを左寄せ
+                child: Text("..", style: TextStyle(color: Colors.white)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
