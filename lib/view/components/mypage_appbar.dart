@@ -9,7 +9,6 @@ import 'changeNotifire.dart';
 // マイページ用のカスタムAppBar
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
     CustomAppBar({Key? key}) : super(key: key);
-
     @override
     _CustomAppBarState createState() => _CustomAppBarState();
 
@@ -24,29 +23,37 @@ class _CustomAppBarState extends State<CustomAppBar> {
 
     // ユーザー名を取得する非同期処理
     Future<void> fetchFollowername() async {
-        try {
-            DocumentSnapshot snapshot = await FirebaseFirestore.instance
-                .collection('users')
-                .doc(userAuth.currentUser!.uid)
-                .get();
+        //Userがnullじゃなかったら
+        if(userAuth.currentUser!=null){
+            try {
+                DocumentSnapshot snapshot = await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(userAuth.currentUser!.uid)
+                    .get();
 
-            //ドキュメントにusernameが登録されている場合
-            if (snapshot.exists && snapshot.get('username') != "") {
+                //ドキュメントにusernameが登録されている場合
+                if (snapshot.exists && snapshot.get('username') != "") {
+                    setState(() {
+                        username = snapshot.get('username'); // ユーザー名を更新
+                    });
+                }
+                //ドキュメントにusernameが登録されていない場合=> デフォルト値かえす
+                else {
+                    setState(() {
+                        // デフォルト値
+                        username = '{Username}';
+                    });
+                }
+            } catch (e) {
                 setState(() {
-                    username = snapshot.get('username'); // ユーザー名を更新
+                    // エラーメッセージを表示
+                    username = "error name";
                 });
             }
-            //ドキュメントにusernameが登録されていない場合=> デフォルト値かえす
-            else {
-                setState(() {
-                    // デフォルト値
-                    username = '{Username}';
-                });
-            }
-        } catch (e) {
+        }else{
             setState(() {
                 // エラーメッセージを表示
-                username = "error name";
+                username = "No login";
             });
         }
     }
