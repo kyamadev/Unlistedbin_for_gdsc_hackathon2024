@@ -101,17 +101,29 @@ class _MypageState extends State<Mypage> {
         .collection('repositories')
         .snapshots()
         .listen((snapshot) {
-      final List<String> repoNames =
-          snapshot.docs.map((doc) => doc['name'] as String).toList();
+      final List<String> repoNames = snapshot.docs.map((doc) {
+        // 'name' フィールドが null かどうかをチェック
+        return doc.data().containsKey('name') ? doc['name'] as String : 'Unnamed';
+      }).toList();
 
-      final List<String> repoIds =
-      snapshot.docs.map((doc) => doc.id).toList();
+      final List<String> repoIds = snapshot.docs.map((doc) {
+        return doc.id; // id が null になることはないが、念のため
+      }).toList();
 
-      setState(() {
-        repositoryNames = repoNames;
-        repositoryIds=repoIds;
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          repositoryNames = repoNames;
+          repositoryIds = repoIds;
+          isLoading = false;
+        });
+      }
+    }, onError: (error) {
+      print("Error fetching repositories in realtime: $error");
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     });
   }
 
