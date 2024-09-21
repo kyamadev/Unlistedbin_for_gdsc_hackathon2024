@@ -24,9 +24,7 @@ class Mypage extends StatefulWidget {
 class _MypageState extends State<Mypage> {
   late String userId; // 現在のユーザーIDを保持
   List<String> repositoryNames = []; // 取得したリポジトリ名を保持
-
-  List<String> repositoryIds= [];// 取得したリポジトリidを保持=======
-  List<String> repositoryIds = []; // 取得したレポジトリIDを保持
+  List<String> repositoryIds= [];// 取得したリポジトリidを保持
 
   bool isLoading = true; // ローディング状態の管理
   String appUrl = html.window.location.origin;
@@ -83,10 +81,6 @@ class _MypageState extends State<Mypage> {
       final List<String> repoIds =
       snapshot.docs.map((doc) => doc.id).toList();
 
-
-      final List<String> repoIds =
-          snapshot.docs.map((doc) => doc.id as String).toList();
-
       setState(() {
         repositoryNames = repoNames;
         repositoryIds = repoIds;
@@ -116,9 +110,6 @@ class _MypageState extends State<Mypage> {
       setState(() {
         repositoryNames = repoNames;
         repositoryIds=repoIds;
-
-
-   
         isLoading = false;
       });
     });
@@ -182,7 +173,6 @@ class _MypageState extends State<Mypage> {
                   itemCount: repositoryNames.length,
                   itemBuilder: (context, index) {
                     return _buildRepoItem(repositoryNames[index],repositoryIds[index]); // リポジトリ名を表示
-
                   },
                 ),
               ),
@@ -283,7 +273,6 @@ class _MypageState extends State<Mypage> {
   // リポジトリアイテムのウィジェットを作成するヘルパーメソッド
 
   Widget _buildRepoItem(String repoName, String repoId) {
-
     return Container(
       margin: EdgeInsets.symmetric(vertical: 2),
       padding: EdgeInsets.all(8),
@@ -302,7 +291,7 @@ class _MypageState extends State<Mypage> {
                   MaterialPageRoute(
                     builder: (context) {
                       // repoIdを引数として抽出する
-                      final id = repositoryIds[index];
+                      final id = repoId;
                       return RepositoryScreen(repoId: id, path: '');
                     },
                   ),
@@ -319,7 +308,7 @@ class _MypageState extends State<Mypage> {
             onPressed: () {
               // クリップボードボタンが押されたときの処理
               Clipboard.setData(
-                  ClipboardData(text: '$appUrl/repo/${repositoryIds[index]}'));
+                  ClipboardData(text: '$appUrl/repo/${repoId}'));
               Fluttertoast.showToast(
                   msg: 'Copied!',
                   textColor: Colors.white,
