@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:for_gdsc_2024/view/mypage/mypage.dart';
 
@@ -168,21 +169,46 @@ class _MyPageSettingState extends State<MyPageSetting> {
                         'Repository name',
                         style: TextStyle(color: Colors.white, fontSize: 20),
                       ),
-                      //email 用のTextfield
+                      //レポジトリ名を表示
                       Container(
+                        width: SizeConfig.blockSizeHorizontal! * 50,
+                          padding: EdgeInsets.all(8),
                           color: Colors.white,
-                          child: Text(reponame,
-                            style: TextStyle(color: Colors.black, fontSize: 20),)),
+                          child: Text(
+                            reponame,
+                            maxLines: null,  // 行数を制限しない
+                            softWrap: true,  // 折り返しを許可
+                            style: TextStyle(color: Colors.black, fontSize: 20),
+                            overflow: TextOverflow.ellipsis,)),
+
                       SizedBox(height: 30),
-                      //password 用のTextfield
+                      //URL を表示
                       Text(
                         'Share Url',
                         style: TextStyle(color: Colors.white, fontSize: 20),
                       ),
                       Container(
+                          width: SizeConfig.blockSizeHorizontal! * 50,
+                          padding: EdgeInsets.all(8),
                           color: Colors.white,
-                          child: Text(url_key,
-                            style: TextStyle(color: Colors.black, fontSize: 20),)),
+                          child: Row(
+                            children: [
+                              Flexible(child: Text(url_key,
+                                style: TextStyle(color: Colors.black, fontSize: 20),),),
+                              IconButton(
+                                icon: Icon(Icons.content_paste, color: Colors.black54),
+                                onPressed: () {
+                                  // クリップボードボタンが押されたときの処理
+                                  Clipboard.setData(
+                                      ClipboardData(text: '$url_key'));
+                                  Fluttertoast.showToast(
+                                      msg: 'Copied!',
+                                      textColor: Colors.white,
+                                      timeInSecForIosWeb: 2);
+                                },
+                              ),
+                            ],
+                          )),
                       SizedBox(height: 30),
                       //URL再生成 ボタン
                       OutlinedButton(
