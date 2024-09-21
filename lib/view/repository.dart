@@ -1,21 +1,73 @@
 import 'package:flutter/material.dart';
-import 'package:for_gdsc_2024/view/components/mypage_appbar.dart';
-import 'package:for_gdsc_2024/view/components/mypage_drawer.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
-class RepositoryScreen extends StatelessWidget {
+class RepositoryScreen extends StatefulWidget {
   final String repoId;
   final String path;
-  List<String> content = ['テスト', 'a.txt', 'flutter.csv', 'ファイル'];
-  bool isLoading = false;
 
-  // コンストラクタでリポジトリIDを受け取る
-  RepositoryScreen({required this.repoId, required this.path});
+  // コンストラクタでリポジトリIDとパスを受け取る
+  const RepositoryScreen({super.key, required this.repoId, required this.path});
+
+  @override
+  State<RepositoryScreen> createState() => _RepositoryState();
+}
+
+class _RepositoryState extends State<RepositoryScreen> {
+  List<String> content = [];
+  bool isLoading = true;
+  late String userId; 
+
+  @override
+  void initState() {
+    super.initState();
+    _findUserId();
+    _fetchFiles();
+  }
+
+  // Firebase Storageからファイルリストを取得するメソッド
+  Future<void> _fetchFiles() async {
+    try {
+      final storageRef = FirebaseStorage.instance.ref('repositories').child(userId).child(widget.repoId).child(widget.path);
+      final listResult = await storageRef.listAll(); // フォルダ内の全ファイルとフォルダを取得
+
+      List<String> fileNames = [];
+      // ファイルを取得してリストに追加
+      for (var item in listResult.items) {
+        fileNames.add(item.name); // ファイル名をcontentリストに追加
+      }
+
+      // フォルダも表示したい場合
+      for (var prefix in listResult.prefixes) {
+        fileNames.add(prefix.name + '/'); // フォルダ名をcontentリストに追加
+      }
+
+      setState(() {
+        content = fileNames;
+        isLoading = false;
+      });
+    } catch (e) {
+      print('ファイルの取得中にエラーが発生しました: $e');
+      Fluttertoast.showToast(
+          msg: 'ファイルの取得中にエラーが発生しました: $e',
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          timeInSecForIosWeb: 5);
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  // ユーザIDを取得するメソッド
+  void _findUserId() {
+    userId = "FlmnZfICK1SWUFAYXTcjdrGM3P62"; // 仮のユーザID
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(),
-      drawer: CustomDrawer(),
+      appBar: AppBar(title: Text("リポジトリ内容")),
       body: Container(
         margin: EdgeInsets.only(
           top: 50,
@@ -25,17 +77,15 @@ class RepositoryScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 上部の名前表示
             SizedBox(height: 20),
             if (isLoading)
               Center(child: CircularProgressIndicator())
-            // リストビューでレポジトリ名を表示
             else
               Expanded(
                 child: ListView.builder(
                   itemCount: content.length,
                   itemBuilder: (context, index) {
-                    return _FolderOrFile(content[index], index); // リポジトリ名を表示
+                    return _FolderOrFile(content[index], index); // ファイルまたはフォルダ名を表示
                   },
                 ),
               ),
@@ -46,15 +96,15 @@ class RepositoryScreen extends StatelessWidget {
   }
 
   // リポジトリアイテムのウィジェットを作成するヘルパーメソッド
-  Widget _FolderOrFile(String repoName, int index) {
-    if (repoName.contains('.')) {
-      return _FileItem(repoName, index);
+  Widget _FolderOrFile(String itemName, int index) {
+    if (itemName.endsWith('/')) {
+      return _FolderItem(itemName, index);
     } else {
-      return _FolderItem(repoName, index);
+      return _FileItem(itemName, index);
     }
   }
 
-  Widget _FolderItem(String repoName, int index) {
+  Widget _FolderItem(String folderName, int index) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 2),
       padding: EdgeInsets.all(8),
@@ -68,12 +118,21 @@ class RepositoryScreen extends StatelessWidget {
           SizedBox(width: 10),
           Expanded(
             child: TextButton(
-              onPressed: () { 
-                  // リポジトリが選択されたときの処理
-               },
+              onPressed: () {
+                // フォルダが選択されたときの処理
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RepositoryScreen(
+                      repoId: widget.repoId,
+                      path: widget.path + '/' + folderName,
+                    ),
+                  ),
+                );
+              },
               child: Align(
                 alignment: Alignment.centerLeft, // テキストを左寄せ
-                child: Text(repoName, style: TextStyle(color: Colors.white)),
+                child: Text(folderName, style: TextStyle(color: Colors.white)),
               ),
             ),
           ),
@@ -82,7 +141,7 @@ class RepositoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _FileItem(String repoName, int index) {
+  Widget _FileItem(String fileName, int index) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 2),
       padding: EdgeInsets.all(8),
@@ -96,12 +155,12 @@ class RepositoryScreen extends StatelessWidget {
           SizedBox(width: 10),
           Expanded(
             child: TextButton(
-              onPressed: () { 
-                  // リポジトリが選択されたときの処理
-               },
+              onPressed: () {
+                // ファイルが選択されたときの処理
+              },
               child: Align(
                 alignment: Alignment.centerLeft, // テキストを左寄せ
-                child: Text(repoName, style: TextStyle(color: Colors.white)),
+                child: Text(fileName, style: TextStyle(color: Colors.white)),
               ),
             ),
           ),
