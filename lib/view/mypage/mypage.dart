@@ -21,6 +21,7 @@ class Mypage extends StatefulWidget {
 class _MypageState extends State<Mypage> {
   late String userId; // 現在のユーザーIDを保持
   List<String> repositoryNames = []; // 取得したリポジトリ名を保持
+  List<String> repositoryIds= [];// 取得したリポジトリidを保持
   bool isLoading = true; // ローディング状態の管理
   String appUrl =  html.window.location.origin;
 
@@ -73,9 +74,13 @@ class _MypageState extends State<Mypage> {
       // 取得したドキュメントからリポジトリ名をリストに追加
       final List<String> repoNames =
           snapshot.docs.map((doc) => doc['name'] as String).toList();
+      final List<String> repoIds =
+      snapshot.docs.map((doc) => doc.id).toList();
+
 
       setState(() {
         repositoryNames = repoNames;
+        repositoryIds = repoIds;
         isLoading = false; // ローディング完了
       });
     } catch (e) {
@@ -95,8 +100,12 @@ class _MypageState extends State<Mypage> {
         .listen((snapshot) {
       final List<String> repoNames =
           snapshot.docs.map((doc) => doc['name'] as String).toList();
+      final List<String> repoIds =
+      snapshot.docs.map((doc) => doc.id).toList();
+
       setState(() {
         repositoryNames = repoNames;
+        repositoryIds=repoIds;
         isLoading = false;
       });
     });
@@ -159,7 +168,7 @@ class _MypageState extends State<Mypage> {
                 child: ListView.builder(
                   itemCount: repositoryNames.length,
                   itemBuilder: (context, index) {
-                    return _buildRepoItem(repositoryNames[index]); // リポジトリ名を表示
+                    return _buildRepoItem(repositoryNames[index],repositoryIds[index]); // リポジトリ名を表示
                   },
                 ),
               ),
@@ -258,7 +267,7 @@ class _MypageState extends State<Mypage> {
   }
 
   // リポジトリアイテムのウィジェットを作成するヘルパーメソッド
-  Widget _buildRepoItem(String repoName) {
+  Widget _buildRepoItem(String repoName, String repoId) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 2),
       padding: EdgeInsets.all(8),
@@ -284,7 +293,7 @@ class _MypageState extends State<Mypage> {
             onPressed: () {
               // 設定ボタンが押された -> MyPageSetting へ画面遷移
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => MyPageSetting()));
+                  MaterialPageRoute(builder: (context) => MyPageSetting(repoId: repoId)));
             },
           ),
         ],

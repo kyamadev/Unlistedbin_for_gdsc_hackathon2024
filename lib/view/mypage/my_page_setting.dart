@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../config/size_config.dart';
@@ -5,7 +7,10 @@ import '../components/mypage_appbar.dart';
 import '../components/mypage_drawer.dart';
 
 class MyPageSetting extends StatefulWidget {
-  const MyPageSetting({super.key});
+  final String repoId;
+  const MyPageSetting({
+    Key? key,required this.repoId
+  }): super(key: key);
 
   @override
   State<MyPageSetting> createState() => _MyPageSettingState();
@@ -13,9 +18,31 @@ class MyPageSetting extends StatefulWidget {
 
 class _MyPageSettingState extends State<MyPageSetting> {
   int _privacyVal=0;
+  final userAuth = FirebaseAuth.instance;
+
+  Future<void> _fetchRepository() async{
+    if(userAuth.currentUser!=null){
+      //ユーザがしっかりログインしている場合
+      try{
+        DocumentSnapshot snapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userAuth.currentUser!.uid)
+            .collection('repositories')
+            .doc()
+            .get();
+
+      }catch(e){
+
+      }
+
+    }else{
+      print("userがログインしていません");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    print(widget.repoId);
     return Scaffold(
       appBar: CustomAppBar(),
         body: Center(
@@ -52,8 +79,32 @@ class _MyPageSettingState extends State<MyPageSetting> {
                           child: Text("shareurl/url/",
                             style: TextStyle(color: Colors.black, fontSize: 20),)),
                       SizedBox(height: 30),
+                      //URL再生成 ボタン
+                      OutlinedButton(
+                        child: const Text('Regenerate URL'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor:Color(0xff878702),shape: const StadiumBorder(),
+                          side: const BorderSide(color: Colors.white),
+                        ),
+                        onPressed: () {},
+                      ),
+                      SizedBox(height: 30),
+                      //レポジトリ削除 ボタン
+                      OutlinedButton(
+                        child: const Text('Delete repository'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor:Color(0xff870202),shape: const StadiumBorder(),
+                          side: const BorderSide(color: Colors.white),
+                        ),
+                        onPressed: () {},
+                      ),
+                      SizedBox(height: 50),
+
+                      //対象のURLのモードを選択
                       Text(
-                        "Privacy",
+                        "Change mode",
                         style: TextStyle(color: Colors.white, fontSize: 20),
                       ),
                       //radioボタン unlisted
@@ -94,28 +145,8 @@ class _MyPageSettingState extends State<MyPageSetting> {
                             style: TextStyle(color: Colors.white, fontSize: 20),),)),
                         ],
                       ),
-                      SizedBox(height: 30),
-                      //URL再生成 ボタン
-                      OutlinedButton(
-                        child: const Text('Regenerate URL'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor:Color(0xff878702),shape: const StadiumBorder(),
-                          side: const BorderSide(color: Colors.white),
-                        ),
-                        onPressed: () {},
-                      ),
-                      SizedBox(height: 30),
-                      //レポジトリ削除 ボタン
-                      OutlinedButton(
-                        child: const Text('Delete repository'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor:Color(0xff870202),shape: const StadiumBorder(),
-                          side: const BorderSide(color: Colors.white),
-                        ),
-                        onPressed: () {},
-                      ),
+
+
 
 
                     ],
