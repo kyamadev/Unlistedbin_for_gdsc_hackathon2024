@@ -357,11 +357,12 @@ class _RegisterState extends State<Register> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
+                            Flexible(child: Text(
                               "Already have account?",
                               style:
-                                  TextStyle(color: Colors.white, fontSize: 20),
-                            ),
+                              TextStyle(color: Colors.white, fontSize: 20),
+                              overflow: TextOverflow.ellipsis,
+                            ),),
                             SizedBox(width: 10),
                             TextButton(
                               child: Text("Sign in",

@@ -34,8 +34,7 @@ class _LoginState extends State<Login> {
   }
 
   //sign in 用のmethod
-  Future<void> _signIn(
-      BuildContext context, String email, String password) async {
+  Future<void> _signIn(BuildContext context, String email, String password) async {
     try {
       await userAuth.signInWithEmailAndPassword(
           email: email, password: password);
@@ -79,7 +78,7 @@ class _LoginState extends State<Login> {
                     child: Column(
                       children: [
                         SizedBox(
-                          height: 100,
+                          height: 30,
                         ),
                         //email 用のTextfield
                         TextFormField(
@@ -262,21 +261,22 @@ class _LoginState extends State<Login> {
                             ),
                           ),
                         ),
-
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              "Make new account?",
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 20),
-                            ),
+                            Flexible(
+                                child: Text(
+                                  "Make new account?",
+                                  style:
+                                  TextStyle(color: Colors.white, fontSize: 18),
+                                  overflow: TextOverflow.ellipsis,
+                                ),),
                             SizedBox(width: 10),
                             TextButton(
                               child: Text("Sign up",
                                   style: TextStyle(
                                     color: Color(0xFF0500FF),
-                                    fontSize: 20,
+                                    fontSize: 18,
                                     fontFamily: 'Inter',
                                     fontWeight: FontWeight.w400,
                                     height: 0,
