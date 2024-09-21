@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:for_gdsc_2024/view/file_view.dart';
 
 class RepositoryScreen extends StatefulWidget {
   final String repoId;
@@ -261,7 +262,17 @@ class _RepositoryState extends State<RepositoryScreen> {
           SizedBox(width: 10),
           Expanded(
             child: TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FileScreen(
+                        repoId: widget.repoId,
+                        path: widget.path + '/' + fileName,
+                      ),
+                    ),
+                  );
+                },
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(fileName, style: TextStyle(color: Colors.white)),
