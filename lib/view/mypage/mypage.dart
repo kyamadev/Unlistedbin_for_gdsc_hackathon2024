@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:for_gdsc_2024/view/components/mypage_drawer.dart';
 import 'package:provider/provider.dart';
+import 'package:for_gdsc_2024/view/repository.dart';
 
 import '../components/changeNotifire.dart';
 
@@ -21,6 +22,7 @@ class Mypage extends StatefulWidget {
 class _MypageState extends State<Mypage> {
   late String userId; // 現在のユーザーIDを保持
   List<String> repositoryNames = []; // 取得したリポジトリ名を保持
+  List<String> repositoryIds = []; // 取得したレポジトリIDを保持
   bool isLoading = true; // ローディング状態の管理
   String appUrl = html.window.location.origin;
 
@@ -74,8 +76,12 @@ class _MypageState extends State<Mypage> {
       final List<String> repoNames =
           snapshot.docs.map((doc) => doc['name'] as String).toList();
 
+      final List<String> repoIds =
+          snapshot.docs.map((doc) => doc.id as String).toList();
+
       setState(() {
         repositoryNames = repoNames;
+        repositoryIds = repoIds;
         isLoading = false; // ローディング完了
       });
     } catch (e) {
@@ -95,8 +101,12 @@ class _MypageState extends State<Mypage> {
         .listen((snapshot) {
       final List<String> repoNames =
           snapshot.docs.map((doc) => doc['name'] as String).toList();
+
+      final List<String> repoIds =
+          snapshot.docs.map((doc) => doc.id as String).toList();
       setState(() {
         repositoryNames = repoNames;
+        repositoryIds = repoIds;
         isLoading = false;
       });
     });
@@ -159,7 +169,7 @@ class _MypageState extends State<Mypage> {
                 child: ListView.builder(
                   itemCount: repositoryNames.length,
                   itemBuilder: (context, index) {
-                    return _buildRepoItem(repositoryNames[index]); // リポジトリ名を表示
+                    return _buildRepoItem(repositoryNames[index], index); // リポジトリ名を表示
                   },
                 ),
               ),
@@ -258,7 +268,7 @@ class _MypageState extends State<Mypage> {
   }
 
   // リポジトリアイテムのウィジェットを作成するヘルパーメソッド
-  Widget _buildRepoItem(String repoName) {
+  Widget _buildRepoItem(String repoName, int index) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 2),
       padding: EdgeInsets.all(8),
@@ -271,7 +281,23 @@ class _MypageState extends State<Mypage> {
           Icon(Icons.folder, color: Colors.white),
           SizedBox(width: 10),
           Expanded(
-            child: Text(repoName, style: TextStyle(color: Colors.white)),
+            child: TextButton(
+              onPressed: () { 
+                  Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      // repoIdを引数として抽出する
+                      final id = repositoryIds[index];
+                      return RepositoryScreen(repoId: id);
+                    },
+                  ),
+                );
+               },
+              child: Align(
+                alignment: Alignment.centerLeft, // テキストを左寄せ
+                child: Text(repoName, style: TextStyle(color: Colors.white)),
+              ),
+            ),
           ),
           IconButton(
             icon: Icon(Icons.content_paste, color: Colors.white),
