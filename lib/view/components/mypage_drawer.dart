@@ -31,40 +31,46 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   //アカウント名取得
   Future<void> fetchAccountName() async{
-    try{
-      DocumentSnapshot snapshot = await FirebaseFirestore.instance
-          .collection('users').doc(userAuth.currentUser!.uid)
-          .get();
+    if(userAuth.currentUser !=null){
+      try{
+        DocumentSnapshot snapshot = await FirebaseFirestore.instance
+            .collection('users').doc(userAuth.currentUser!.uid)
+            .get();
 
-      if (snapshot.exists) {
-        String username = snapshot.get('username');
-        // コントローラーに値を反映
-        _nameController.text = username;
-        // UserModelに反映
-        Provider.of<AppUserProvider>(context, listen: false).setUsername(username);
-      }else {
-        print('アカウントのデータがそもそもない');
+        if (snapshot.exists) {
+          String username = snapshot.get('username');
+          // コントローラーに値を反映
+          _nameController.text = username;
+          // UserModelに反映
+          Provider.of<AppUserProvider>(context, listen: false).setUsername(username);
+        }else {
+          print('アカウントのデータがそもそもない');
+        }
+      }catch (e) {
+        print('fetchに失敗: $e');
       }
-    }catch (e) {
-      print('fetchに失敗: $e');
+    }else{
+      Fluttertoast.showToast(msg:'firebaseにログインしていません');
     }
   }
   //アカウント名をセットする
   Future<void> setAccountName(DocumentReference _mainReference) async{
-    try{
-      String username= _nameController.text;
-      await _mainReference.set({
-        'username': username,
-      },SetOptions(merge: true));
-      // UserModelにも反映
-      Provider.of<AppUserProvider>(context, listen: false).setUsername(username);
+    if(userAuth.currentUser!=null){
+      try{
+        String username= _nameController.text;
+        await _mainReference.set({
+          'username': username,
+        },SetOptions(merge: true));
+        // UserModelにも反映
+        Provider.of<AppUserProvider>(context, listen: false).setUsername(username);
 
-
-      Fluttertoast.showToast(msg: "保存に成功しました");
-    }catch(e){
-      Fluttertoast.showToast(msg: "保存に失敗しました:$e");
+        Fluttertoast.showToast(msg: "保存に成功しました");
+      }catch(e){
+        Fluttertoast.showToast(msg: "保存に失敗しました:$e");
+      }
+    }else{
+      Fluttertoast.showToast(msg: "firebaseにログインしていません");
     }
-
   }
 
   @override
@@ -72,6 +78,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
     DocumentReference _mainReference = FirebaseFirestore.instance
         .collection('users')
         .doc(userAuth.currentUser!.uid);
+
     return Drawer(
       child: ListView(
         children: <Widget>[
@@ -156,7 +163,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 Provider.of<AppUserProvider>(context, listen: false).reset();
                 _nameController.clear();
 
-                FirebaseAuth.instance.signOut();
+                await FirebaseAuth.instance.signOut();
+                while (FirebaseAuth.instance.currentUser != null) {
+                  await Future.delayed(Duration(milliseconds: 100));
+                }
+                print('ログアウト後のユーザー情報: ${userAuth.currentUser}');
+
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => Start()),
