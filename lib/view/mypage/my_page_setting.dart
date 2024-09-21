@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:for_gdsc_2024/view/mypage/mypage.dart';
 
 import '../../config/size_config.dart';
 import '../components/mypage_appbar.dart';
-import '../components/mypage_drawer.dart';
+
 
 class MyPageSetting extends StatefulWidget {
   final String repoId;
@@ -66,6 +67,7 @@ class _MyPageSettingState extends State<MyPageSetting> {
     }
   }
 
+  //指定されたrepository の削除
   Future<void> _deleteRepository() async{
     //アカウントからぬける
     bool? confirm = await showDialog(
@@ -95,6 +97,9 @@ class _MyPageSettingState extends State<MyPageSetting> {
       // ログインしているか確認
       if (userAuth.currentUser != null) {
         try {
+          //　フォルダ内のすべてのファイルを削除
+          await _deleteFolder('repositories/${userAuth.currentUser!.uid}/${widget.repoId}/');
+
           // ドキュメントを削除
           await FirebaseFirestore.instance
               .collection('users')
@@ -103,6 +108,7 @@ class _MyPageSettingState extends State<MyPageSetting> {
               .doc(widget.repoId)
               .delete();
 
+          print('リポジトリとそのフォルダが削除されました: ${widget.repoId}');
           // 削除が完了したらナビゲーション
           Navigator.pushAndRemoveUntil(
             context,
@@ -123,6 +129,23 @@ class _MyPageSettingState extends State<MyPageSetting> {
     }
 
   }
+
+  Future<void> _deleteFolder(String folderPath) async{
+    //フォルダ内の全てのファイルを取得
+    final ListResult result = await FirebaseStorage.instance.ref(folderPath).listAll();
+    // フォルダ内のファイルを1つずつ削除
+    for (Reference fileRef in result.items) {
+      await fileRef.delete();
+      print('Deleted file: ${fileRef.fullPath}');
+    }
+
+    // サブフォルダがある場合は再帰的に削除
+    for (Reference prefix in result.prefixes) {
+      await _deleteFolder(prefix.fullPath);
+    }
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
