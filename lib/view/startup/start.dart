@@ -67,10 +67,11 @@ class _StartState extends State<Start> {
                       ),
                     ),
                     TextSpan(
-                      text: '\n{Explanation Text}\n',
+                      text:
+                          '\nUnlistedbinはURLを共有することでレポジトリコードを限定公開できる、レポジトリサービスです。\n',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 64,
+                        fontSize: 16,
                         fontFamily: 'Inter',
                         fontWeight: FontWeight.w300,
                         height: 0,
