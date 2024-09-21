@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:for_gdsc_2024/view/file_view.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 class RepositoryScreen extends StatefulWidget {
   final String repoId;
@@ -163,6 +165,27 @@ class _RepositoryState extends State<RepositoryScreen> {
     }
   }
 
+  Future<String> _loadMarkdownFile(String fileName) async {
+    try {
+      final fileRef = FirebaseStorage.instance
+          .ref('repositories')
+          .child(userId!)  // nullではないことを保証
+          .child(widget.repoId)
+          .child(widget.path + '/' + fileName);
+
+      final fileData = await fileRef.getData();  // ファイルのデータを取得
+
+      if (fileData != null) {
+        return utf8.decode(fileData);  // バイトデータをUTF-8でデコードして文字列を返す
+      } else {
+        throw Exception('ファイルが見つかりません');
+      }
+    } catch (e) {
+      throw Exception('Markdownファイルの読み込みに失敗しました: $e');
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -177,42 +200,91 @@ class _RepositoryState extends State<RepositoryScreen> {
           left: MediaQuery.of(context).size.width * 0.2,
           right: MediaQuery.of(context).size.width * 0.2,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("$repoName by $ownerName", style: TextStyle(fontSize: 20, color: Colors.white)),
-            SizedBox(height: 20),
-            if (isLoading)
-              Center(child: CircularProgressIndicator())
-            else
-              Expanded(
-                child: ListView.builder(
-                  itemCount: widget.path.isEmpty ? content.length : content.length + 1,
-                  itemBuilder: (context, index) {
-                    if (widget.path.isNotEmpty && index == 0) {
-                      return _backFile();
-                    } else {
-                      final contentIndex = widget.path.isEmpty ? index : index - 1;
-                      return _FolderOrFile(content[contentIndex], contentIndex);
-                    }
-                  },
-                ),
+        child: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : ListView(
+                children: [
+                  // リポジトリ名とオーナー名の表示
+                  Text(
+                    "$repoName by $ownerName",
+                    style: TextStyle(fontSize: 20, color: Colors.white),
+                  ),
+                  SizedBox(height: 20),
+                  // 戻るボタンの表示（必要な場合）
+                  if (widget.path.isNotEmpty)
+                    _backFile(),
+                  // ファイルとフォルダのリストを表示
+                  ...content.map((item) => _FolderOrFile(item)).toList(),
+                  SizedBox(height: 20),
+                  // マークダウンウィジェットの表示
+                  _buildMarkdownWidget(),
+                ],
               ),
-          ],
-        ),
       ),
     );
   }
 
-  Widget _FolderOrFile(String itemName, int index) {
+  // マークダウンウィジェットを作成する関数
+Widget _buildMarkdownWidget() {
+  if (content.any((file) => file.endsWith('.md'))) {
+    final markdownFile = content.firstWhere((file) => file.endsWith('.md'));
+
+    return FutureBuilder<String>(
+      future: _loadMarkdownFile(markdownFile),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Text('Markdownファイルの読み込みに失敗しました: ${snapshot.error}');
+        } else if (snapshot.hasData && snapshot.data != null && (snapshot.data as String).isNotEmpty) {
+          return Container(
+            color: Colors.black, // 背景を黒に設定
+            width: double.infinity,
+            padding: const EdgeInsets.all(8.0),
+            child: Markdown(
+              data: snapshot.data as String,
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(), // 内部のスクロールを無効化
+              styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                p: TextStyle(color: Colors.white),
+                h1: TextStyle(color: Colors.white),
+                h2: TextStyle(color: Colors.white),
+                h3: TextStyle(color: Colors.white),
+                h4: TextStyle(color: Colors.white),
+                h5: TextStyle(color: Colors.white),
+                h6: TextStyle(color: Colors.white),
+                strong: TextStyle(color: Colors.white),
+                em: TextStyle(color: Colors.white),
+                code: TextStyle(color: Colors.white, backgroundColor: Colors.grey[800]),
+                codeblockDecoration: BoxDecoration(color: Colors.grey[800]),
+                blockquote: TextStyle(color: Colors.white),
+                listBullet: TextStyle(color: Colors.white),
+                // 他のスタイルも必要に応じて設定
+              ),
+            ),
+          );
+        } else {
+          return SizedBox.shrink();
+        }
+      },
+    );
+  } else {
+    return SizedBox.shrink();
+  }
+}
+
+
+
+  Widget _FolderOrFile(String itemName) {
     if (itemName.endsWith('/')) {
-      return _FolderItem(itemName, index);
+      return _FolderItem(itemName);
     } else {
-      return _FileItem(itemName, index);
+      return _FileItem(itemName);
     }
   }
 
-  Widget _FolderItem(String folderName, int index) {
+
+  Widget _FolderItem(String folderName) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 2),
       padding: EdgeInsets.all(8),
@@ -248,7 +320,7 @@ class _RepositoryState extends State<RepositoryScreen> {
     );
   }
 
-  Widget _FileItem(String fileName, int index) {
+  Widget _FileItem(String fileName) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 2),
       padding: EdgeInsets.all(8),
