@@ -292,7 +292,7 @@ class _MypageState extends State<Mypage> {
                     builder: (context) {
                       // repoIdを引数として抽出する
                       final id = repoId;
-                      return RepositoryScreen(repoId: id, path: '');
+                      return RepositoryScreen(repoId: id, path: repoName);
                     },
                   ),
                 );
