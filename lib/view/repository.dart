@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RepositoryScreen extends StatefulWidget {
   final String repoId;
   final String path;
 
-  // コンストラクタでリポジトリIDとパスを受け取る
   const RepositoryScreen({super.key, required this.repoId, required this.path});
 
   @override
@@ -16,30 +16,132 @@ class RepositoryScreen extends StatefulWidget {
 class _RepositoryState extends State<RepositoryScreen> {
   List<String> content = [];
   bool isLoading = true;
-  late String userId; 
+  String? userId;
+  String? ownerName;
+  String? repoName;
 
   @override
   void initState() {
     super.initState();
-    _findUserId();
-    _fetchFiles();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    // userIdの取得を待ってから次の処理に進む
+    await getUserIdFromRepoId(widget.repoId);
+    
+    // userIdがnullでなければ続けてオーナー名とリポジトリ名を取得
+    if (userId != null) {
+      await getOwnerName(widget.repoId);
+      await getRepoName(widget.repoId);
+    }
+    
+    // ファイルの取得処理を呼び出す
+    await _fetchFiles();
+    
+    // データがすべて揃ったので、UIを更新
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  Future<void> getUserIdFromRepoId(String repositoryId) async {
+    try {
+      // Firestoreの全ユーザーを取得
+      final userDocs = await FirebaseFirestore.instance.collection('users').get();
+
+      for (var doc in userDocs.docs) {
+        
+        // 各ユーザーのrepositoriesサブコレクションを確認
+        var repositories = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(doc.id)
+            .collection('repositories')
+            .doc(repositoryId)
+            .get();
+
+        if (repositories.exists) {
+          setState(() {
+            userId = doc.id; // userIdをセット
+          });
+          return;  // userIdが見つかったので終了
+        }
+      }
+
+      print('リポジトリが見つかりません: $repositoryId');
+    } catch (e) {
+      print('ユーザーID取得エラー: $e');
+    }
+  }
+
+  Future<void> getOwnerName(String repositoryId) async {
+    if (userId == null) return; // userIdがnullなら処理しない
+
+    try {
+      // usersコレクションからuserIdに対応するユーザーデータを取得
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId!)
+          .get();
+
+      if (doc.exists) {
+        setState(() {
+          // 'username' フィールドを 'ownerName' に設定
+          ownerName = doc.data()?['username'];
+        });
+      } else {
+        print('ユーザーが存在しません: $userId');
+      }
+    } catch (e) {
+      print('オーナー名取得エラー: $e');
+    }
+  }  
+
+  Future<void> getRepoName(String repositoryId) async {
+    if (userId == null) return; // userIdがnullなら処理しない
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId!)
+          .collection('repositories')
+          .doc(repositoryId)
+          .get();
+
+      if (doc.exists) {
+        setState(() {
+          repoName = doc.data()?['name'];
+        });
+      } else {
+        print('リポジトリが存在しません: $repositoryId');
+      }
+    } catch (e) {
+      print('リポジトリ名取得エラー: $e');
+    }
   }
 
   // Firebase Storageからファイルリストを取得するメソッド
   Future<void> _fetchFiles() async {
+    if (userId == null) {
+      print("userIdがnullです");
+      return;
+    }
+
     try {
-      final storageRef = FirebaseStorage.instance.ref('repositories').child(userId).child(widget.repoId).child(widget.path);
+      final storageRef = FirebaseStorage.instance
+          .ref('repositories')
+          .child(userId!) // userId!でnullでないことを保証
+          .child(widget.repoId)
+          .child(widget.path);
+
       final listResult = await storageRef.listAll(); // フォルダ内の全ファイルとフォルダを取得
 
       List<String> fileNames = [];
-      // ファイルを取得してリストに追加
       for (var item in listResult.items) {
-        fileNames.add(item.name); // ファイル名をcontentリストに追加
+        fileNames.add(item.name);
       }
-
-      // フォルダも表示したい場合
       for (var prefix in listResult.prefixes) {
-        fileNames.add(prefix.name + '/'); // フォルダ名をcontentリストに追加
+        fileNames.add(prefix.name + '/');
       }
 
       setState(() {
@@ -49,25 +151,25 @@ class _RepositoryState extends State<RepositoryScreen> {
     } catch (e) {
       print('ファイルの取得中にエラーが発生しました: $e');
       Fluttertoast.showToast(
-          msg: 'ファイルの取得中にエラーが発生しました: $e',
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          timeInSecForIosWeb: 5);
+        msg: 'ファイルの取得中にエラーが発生しました: $e',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        timeInSecForIosWeb: 5,
+      );
       setState(() {
         isLoading = false;
       });
     }
   }
 
-  // ユーザIDを取得するメソッド
-  void _findUserId() {
-    userId = "FlmnZfICK1SWUFAYXTcjdrGM3P62"; // 仮のユーザID
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("リポジトリ内容")),
+      appBar: AppBar(
+        title: Text(repoName != null && ownerName != null
+            ? "$repoName by $ownerName"
+            : 'Loading...'),
+      ),
       body: Container(
         margin: EdgeInsets.only(
           top: 50,
@@ -77,33 +179,30 @@ class _RepositoryState extends State<RepositoryScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("{reponame} by {ownername}", style: TextStyle(fontSize: 20, color: Colors.white)),
+            Text("$repoName by $ownerName", style: TextStyle(fontSize: 20, color: Colors.white)),
             SizedBox(height: 20),
             if (isLoading)
               Center(child: CircularProgressIndicator())
             else
-             Expanded(
-              child: ListView.builder(
-                itemCount: widget.path.isEmpty ? content.length : content.length + 1,  // 「..」を表示するかしないか
-                itemBuilder: (context, index) {
-                  if (widget.path.isNotEmpty && index == 0) {
-                    // 「..」を表示 (pathが空でない場合)
-                    return _backFile();
-                  } else {
-                    // それ以外のアイテムを表示
-                    final contentIndex = widget.path.isEmpty ? index : index - 1;
-                    return _FolderOrFile(content[contentIndex], contentIndex);
-                  }
-                },
+              Expanded(
+                child: ListView.builder(
+                  itemCount: widget.path.isEmpty ? content.length : content.length + 1,
+                  itemBuilder: (context, index) {
+                    if (widget.path.isNotEmpty && index == 0) {
+                      return _backFile();
+                    } else {
+                      final contentIndex = widget.path.isEmpty ? index : index - 1;
+                      return _FolderOrFile(content[contentIndex], contentIndex);
+                    }
+                  },
+                ),
               ),
-            ),
           ],
         ),
       ),
     );
   }
 
-  // リポジトリアイテムのウィジェットを作成するヘルパーメソッド
   Widget _FolderOrFile(String itemName, int index) {
     if (itemName.endsWith('/')) {
       return _FolderItem(itemName, index);
@@ -127,7 +226,6 @@ class _RepositoryState extends State<RepositoryScreen> {
           Expanded(
             child: TextButton(
               onPressed: () {
-                // フォルダが選択されたときの処理
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -139,7 +237,7 @@ class _RepositoryState extends State<RepositoryScreen> {
                 );
               },
               child: Align(
-                alignment: Alignment.centerLeft, // テキストを左寄せ
+                alignment: Alignment.centerLeft,
                 child: Text(folderName, style: TextStyle(color: Colors.white)),
               ),
             ),
@@ -163,11 +261,9 @@ class _RepositoryState extends State<RepositoryScreen> {
           SizedBox(width: 10),
           Expanded(
             child: TextButton(
-              onPressed: () {
-                // ファイルが選択されたときの処理
-              },
+              onPressed: () {},
               child: Align(
-                alignment: Alignment.centerLeft, // テキストを左寄せ
+                alignment: Alignment.centerLeft,
                 child: Text(fileName, style: TextStyle(color: Colors.white)),
               ),
             ),
@@ -192,11 +288,10 @@ class _RepositoryState extends State<RepositoryScreen> {
           Expanded(
             child: TextButton(
               onPressed: () {
-                // フォルダが選択されたときの処理
-                 Navigator.pop(context);
+                Navigator.pop(context);
               },
               child: Align(
-                alignment: Alignment.centerLeft, // テキストを左寄せ
+                alignment: Alignment.centerLeft,
                 child: Text("..", style: TextStyle(color: Colors.white)),
               ),
             ),
@@ -205,5 +300,4 @@ class _RepositoryState extends State<RepositoryScreen> {
       ),
     );
   }
-
 }
