@@ -17,11 +17,12 @@ class Mypage extends StatefulWidget {
   @override
   State<Mypage> createState() => _MypageState();
 }
+
 class _MypageState extends State<Mypage> {
   late String userId; // 現在のユーザーIDを保持
   List<String> repositoryNames = []; // 取得したリポジトリ名を保持
   bool isLoading = true; // ローディング状態の管理
-  String appUrl =  html.window.location.origin;
+  String appUrl = html.window.location.origin;
 
   @override
   void initState() {
@@ -31,7 +32,7 @@ class _MypageState extends State<Mypage> {
       userId = user.uid;
       _fetchRepositoriesInRealtime(); // リアルタイムでリポジトリを監視
       _fetchUserName();
-    }else{
+    } else {
       //ログアウトしているときはローディング状態をfalseにする
       setState(() {
         isLoading = false;

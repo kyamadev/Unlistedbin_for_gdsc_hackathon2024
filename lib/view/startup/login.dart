@@ -15,6 +15,7 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  bool _isObscure = true;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String email = "";
   String password = "";
@@ -125,12 +126,24 @@ class _LoginState extends State<Login> {
                         SizedBox(height: 30),
                         //password 用のTextfield
                         TextFormField(
+                          obscureText: _isObscure,
                           controller: _passwordController,
                           decoration: InputDecoration(
                             labelText: 'Password',
                             filled: true,
                             fillColor: Colors.white,
-
+                            suffixIcon: IconButton(
+                              // 文字の表示・非表示でアイコンを変える
+                              icon: Icon(_isObscure
+                                  ? Icons.visibility_off
+                                  : Icons.visibility),
+                              // アイコンがタップされたら現在と反対の状態をセットする
+                              onPressed: () {
+                                setState(() {
+                                  _isObscure = !_isObscure;
+                                });
+                              },
+                            ),
                             //入力に問題があるとき -> 入力欄の周りが赤くなる
                             errorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(15),
