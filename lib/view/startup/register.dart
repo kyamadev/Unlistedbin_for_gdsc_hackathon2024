@@ -21,6 +21,8 @@ class _RegisterState extends State<Register> {
   String email = "";
   String password = "";
   String passwdConfirm = "";
+  bool _isObscure = true;
+  bool _isObscureConfirm = true;
 
   TextEditingController _displaynameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
@@ -187,11 +189,24 @@ class _RegisterState extends State<Register> {
                         ),
                         SizedBox(height: 30),
                         TextFormField(
+                          obscureText: _isObscure,
                           controller: _passwordController,
                           decoration: InputDecoration(
                             labelText: 'Password',
                             filled: true,
                             fillColor: Colors.white,
+                            suffixIcon: IconButton(
+                              // 文字の表示・非表示でアイコンを変える
+                              icon: Icon(_isObscure
+                                  ? Icons.visibility_off
+                                  : Icons.visibility),
+                              // アイコンがタップされたら現在と反対の状態をセットする
+                              onPressed: () {
+                                setState(() {
+                                  _isObscure = !_isObscure;
+                                });
+                              },
+                            ),
 
                             //入力に問題があるとき -> 入力欄の周りが赤くなる
                             errorBorder: OutlineInputBorder(
@@ -237,11 +252,24 @@ class _RegisterState extends State<Register> {
                         ),
                         SizedBox(height: 30),
                         TextFormField(
+                          obscureText: _isObscureConfirm,
                           controller: _passwdConfirmController,
                           decoration: InputDecoration(
                             labelText: 'Password(Confirm)',
                             filled: true,
                             fillColor: Colors.white,
+                            suffixIcon: IconButton(
+                              // 文字の表示・非表示でアイコンを変える
+                              icon: Icon(_isObscureConfirm
+                                  ? Icons.visibility_off
+                                  : Icons.visibility),
+                              // アイコンがタップされたら現在と反対の状態をセットする
+                              onPressed: () {
+                                setState(() {
+                                  _isObscureConfirm = !_isObscureConfirm;
+                                });
+                              },
+                            ),
 
                             //入力に問題があるとき -> 入力欄の周りが赤くなる
                             errorBorder: OutlineInputBorder(

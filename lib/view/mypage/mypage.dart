@@ -9,6 +9,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:for_gdsc_2024/view/components/mypage_drawer.dart';
 import 'package:for_gdsc_2024/view/mypage/my_page_setting.dart';
 import 'package:provider/provider.dart';
+import 'package:for_gdsc_2024/view/repository.dart';
+import 'package:flutter/services.dart';
 
 import '../components/changeNotifire.dart';
 
@@ -18,12 +20,16 @@ class Mypage extends StatefulWidget {
   @override
   State<Mypage> createState() => _MypageState();
 }
+
 class _MypageState extends State<Mypage> {
   late String userId; // 現在のユーザーIDを保持
   List<String> repositoryNames = []; // 取得したリポジトリ名を保持
-  List<String> repositoryIds= [];// 取得したリポジトリidを保持
+
+  List<String> repositoryIds= [];// 取得したリポジトリidを保持=======
+  List<String> repositoryIds = []; // 取得したレポジトリIDを保持
+
   bool isLoading = true; // ローディング状態の管理
-  String appUrl =  html.window.location.origin;
+  String appUrl = html.window.location.origin;
 
   @override
   void initState() {
@@ -33,7 +39,7 @@ class _MypageState extends State<Mypage> {
       userId = user.uid;
       _fetchRepositoriesInRealtime(); // リアルタイムでリポジトリを監視
       _fetchUserName();
-    }else{
+    } else {
       //ログアウトしているときはローディング状態をfalseにする
       setState(() {
         isLoading = false;
@@ -78,6 +84,9 @@ class _MypageState extends State<Mypage> {
       snapshot.docs.map((doc) => doc.id).toList();
 
 
+      final List<String> repoIds =
+          snapshot.docs.map((doc) => doc.id as String).toList();
+
       setState(() {
         repositoryNames = repoNames;
         repositoryIds = repoIds;
@@ -100,12 +109,16 @@ class _MypageState extends State<Mypage> {
         .listen((snapshot) {
       final List<String> repoNames =
           snapshot.docs.map((doc) => doc['name'] as String).toList();
+
       final List<String> repoIds =
       snapshot.docs.map((doc) => doc.id).toList();
 
       setState(() {
         repositoryNames = repoNames;
         repositoryIds=repoIds;
+
+
+   
         isLoading = false;
       });
     });
@@ -169,6 +182,7 @@ class _MypageState extends State<Mypage> {
                   itemCount: repositoryNames.length,
                   itemBuilder: (context, index) {
                     return _buildRepoItem(repositoryNames[index],repositoryIds[index]); // リポジトリ名を表示
+
                   },
                 ),
               ),
@@ -267,7 +281,9 @@ class _MypageState extends State<Mypage> {
   }
 
   // リポジトリアイテムのウィジェットを作成するヘルパーメソッド
+
   Widget _buildRepoItem(String repoName, String repoId) {
+
     return Container(
       margin: EdgeInsets.symmetric(vertical: 2),
       padding: EdgeInsets.all(8),
@@ -280,12 +296,34 @@ class _MypageState extends State<Mypage> {
           Icon(Icons.folder, color: Colors.white),
           SizedBox(width: 10),
           Expanded(
-            child: Text(repoName, style: TextStyle(color: Colors.white)),
+            child: TextButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      // repoIdを引数として抽出する
+                      final id = repositoryIds[index];
+                      return RepositoryScreen(repoId: id, path: '');
+                    },
+                  ),
+                );
+              },
+              child: Align(
+                alignment: Alignment.centerLeft, // テキストを左寄せ
+                child: Text(repoName, style: TextStyle(color: Colors.white)),
+              ),
+            ),
           ),
           IconButton(
             icon: Icon(Icons.content_paste, color: Colors.white),
             onPressed: () {
               // クリップボードボタンが押されたときの処理
+              Clipboard.setData(
+                  ClipboardData(text: '$appUrl/repo/${repositoryIds[index]}'));
+              Fluttertoast.showToast(
+                  msg: 'Copied!',
+                  textColor: Colors.white,
+                  timeInSecForIosWeb: 2);
             },
           ),
           IconButton(
