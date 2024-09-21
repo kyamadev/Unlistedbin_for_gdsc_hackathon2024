@@ -7,6 +7,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:for_gdsc_2024/view/components/mypage_drawer.dart';
+import 'package:for_gdsc_2024/view/mypage/my_page_setting.dart';
 import 'package:provider/provider.dart';
 
 import '../components/changeNotifire.dart';
@@ -281,7 +282,9 @@ class _MypageState extends State<Mypage> {
           IconButton(
             icon: Icon(Icons.settings, color: Colors.white),
             onPressed: () {
-              // 設定ボタンが押されたときの処理
+              // 設定ボタンが押された -> MyPageSetting へ画面遷移
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => MyPageSetting()));
             },
           ),
         ],
