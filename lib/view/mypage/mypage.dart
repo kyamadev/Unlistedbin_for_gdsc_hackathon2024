@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:for_gdsc_2024/view/components/mypage_drawer.dart';
 import 'package:provider/provider.dart';
 import 'package:for_gdsc_2024/view/repository.dart';
+import 'package:flutter/services.dart';
 
 import '../components/changeNotifire.dart';
 
@@ -169,7 +170,8 @@ class _MypageState extends State<Mypage> {
                 child: ListView.builder(
                   itemCount: repositoryNames.length,
                   itemBuilder: (context, index) {
-                    return _buildRepoItem(repositoryNames[index], index); // リポジトリ名を表示
+                    return _buildRepoItem(
+                        repositoryNames[index], index); // リポジトリ名を表示
                   },
                 ),
               ),
@@ -282,8 +284,8 @@ class _MypageState extends State<Mypage> {
           SizedBox(width: 10),
           Expanded(
             child: TextButton(
-              onPressed: () { 
-                  Navigator.of(context).push(
+              onPressed: () {
+                Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) {
                       // repoIdを引数として抽出する
@@ -292,7 +294,7 @@ class _MypageState extends State<Mypage> {
                     },
                   ),
                 );
-               },
+              },
               child: Align(
                 alignment: Alignment.centerLeft, // テキストを左寄せ
                 child: Text(repoName, style: TextStyle(color: Colors.white)),
@@ -303,6 +305,12 @@ class _MypageState extends State<Mypage> {
             icon: Icon(Icons.content_paste, color: Colors.white),
             onPressed: () {
               // クリップボードボタンが押されたときの処理
+              Clipboard.setData(
+                  ClipboardData(text: '$appUrl/repo/${repositoryIds[index]}'));
+              Fluttertoast.showToast(
+                  msg: 'Copied!',
+                  textColor: Colors.white,
+                  timeInSecForIosWeb: 2);
             },
           ),
           IconButton(
