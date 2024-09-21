@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
-
 import '../../model/appuser.dart';
 import '../startup/start.dart';
 import 'changeNotifire.dart';
@@ -30,11 +29,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
   }
 
   //アカウント名取得
-  Future<void> fetchAccountName() async{
-    if(userAuth.currentUser !=null){
-      try{
+  Future<void> fetchAccountName() async {
+    if (userAuth.currentUser != null) {
+      try {
         DocumentSnapshot snapshot = await FirebaseFirestore.instance
-            .collection('users').doc(userAuth.currentUser!.uid)
+            .collection('users')
+            .doc(userAuth.currentUser!.uid)
             .get();
 
         if (snapshot.exists) {
@@ -42,44 +42,86 @@ class _CustomDrawerState extends State<CustomDrawer> {
           // コントローラーに値を反映
           _nameController.text = username;
           // UserModelに反映
-          Provider.of<AppUserProvider>(context, listen: false).setUsername(username);
-        }else {
+          Provider.of<AppUserProvider>(context, listen: false)
+              .setUsername(username);
+        } else {
           print('アカウントのデータがそもそもない');
         }
-      }catch (e) {
+      } catch (e) {
         print('fetchに失敗: $e');
       }
-    }else{
-      Fluttertoast.showToast(msg:'firebaseにログインしていません');
+    } else {
+      Fluttertoast.showToast(msg: 'firebaseにログインしていません');
     }
   }
+
   //アカウント名をセットする
-  Future<void> setAccountName() async{
+  Future<void> setAccountName() async {
     DocumentReference _mainReference = FirebaseFirestore.instance
         .collection('users')
         .doc(userAuth.currentUser!.uid);
 
-    if(userAuth.currentUser!=null){
-      try{
-        String username= _nameController.text;
+    if (userAuth.currentUser != null) {
+      try {
+        String username = _nameController.text;
         await _mainReference.set({
           'username': username,
-        },SetOptions(merge: true));
+        }, SetOptions(merge: true));
         // UserModelにも反映
-        Provider.of<AppUserProvider>(context, listen: false).setUsername(username);
+        Provider.of<AppUserProvider>(context, listen: false)
+            .setUsername(username);
 
         Fluttertoast.showToast(msg: "保存に成功しました");
-      }catch(e){
+      } catch (e) {
         Fluttertoast.showToast(msg: "保存に失敗しました:$e");
       }
-    }else{
+    } else {
       Fluttertoast.showToast(msg: "firebaseにログインしていません");
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    if (userAuth.currentUser != null) {
+      try {
+        // Firestore のバッチを使用してユーザーとそのレポジトリを削除
+        WriteBatch batch = FirebaseFirestore.instance.batch();
+
+        // ユーザードキュメントを削除
+        DocumentReference userDocRef = FirebaseFirestore.instance
+            .collection('users')
+            .doc(userAuth.currentUser!.uid);
+        batch.delete(userDocRef);
+
+        // ユーザーのレポジトリを削除
+        QuerySnapshot repoSnapshot = await FirebaseFirestore.instance
+            .collection('repositories')
+            .where('userId', isEqualTo: userAuth.currentUser!.uid)
+            .get();
+        for (DocumentSnapshot doc in repoSnapshot.docs) {
+          batch.delete(doc.reference);
+        }
+
+        // バッチをコミット
+        await batch.commit();
+
+        // Firebase Authentication からユーザーを削除
+        await userAuth.currentUser!.delete();
+
+        // ログアウトしてスタート画面に戻る
+        await userAuth.signOut();
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => Start()),
+          (_) => false,
+        );
+      } catch (e) {
+        print('アカウント削除エラー: $e');
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Drawer(
       child: ListView(
         children: <Widget>[
@@ -88,37 +130,34 @@ class _CustomDrawerState extends State<CustomDrawer> {
             child: DrawerHeader(
               child: Text('設定とアクティビティ'),
               decoration: BoxDecoration(
-                color:  Color(0xFFC5D8E7),
+                color: Color(0xFFC5D8E7),
               ),
             ),
           ),
           ListTile(
             title: Text('アカウント設定'),
-            onTap: () async{
+            onTap: () async {
               bool? confirm = await showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
                   title: Text("ユーザネーム"),
-                  content:
-                  TextField(
+                  content: TextField(
                     controller: _nameController,
                   ),
                   actions: [
                     TextButton(
                       child: Text("キャンセル"),
                       onPressed: () {
-                        Navigator.of(context).pop(
-                            false); // キャンセルを返す
+                        Navigator.of(context).pop(false); // キャンセルを返す
                       },
                     ),
                     TextButton(
                       child: Text("保存"),
                       onPressed: () {
                         //アカウント名をfirebaseにセット
-                        _account.username=_nameController.text;
+                        _account.username = _nameController.text;
                         setAccountName();
-                        Navigator.of(context).pop(
-                            true); // 削除を返す
+                        Navigator.of(context).pop(true); // 削除を返す
                       },
                     ),
                   ],
@@ -128,7 +167,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 _account.username;
                 Navigator.pop(context);
               }
-
             },
           ),
           ListTile(
@@ -139,21 +177,18 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 context: context,
                 builder: (context) => AlertDialog(
                   title: Text("ログアウト"),
-                  content:
-                  Text("ログアウトしてもよろしいですか？"),
+                  content: Text("ログアウトしてもよろしいですか？"),
                   actions: [
                     TextButton(
                       child: Text("キャンセル"),
                       onPressed: () {
-                        Navigator.of(context).pop(
-                            false); // キャンセルを返す
+                        Navigator.of(context).pop(false); // キャンセルを返す
                       },
                     ),
                     TextButton(
                       child: Text("はい"),
                       onPressed: () {
-                        Navigator.of(context).pop(
-                            true); // 削除を返す
+                        Navigator.of(context).pop(true); // 削除を返す
                       },
                     ),
                   ],
@@ -173,11 +208,39 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => Start()),
-                      (_) => false,
+                  (_) => false,
                 );
               }
             },
           ),
+          ListTile(
+              title: Text('アカウント削除'),
+              onTap: () async {
+                bool? confirm = await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text("アカウント削除"),
+                    content: Text("アカウントと全てのレポジトリが削除されます。本当に削除してもよろしいですか？"),
+                    actions: [
+                      TextButton(
+                        child: Text("キャンセル"),
+                        onPressed: () {
+                          Navigator.of(context).pop(false); // キャンセルを返す
+                        },
+                      ),
+                      TextButton(
+                        child: Text("はい"),
+                        onPressed: () {
+                          Navigator.of(context).pop(true); // アカウント削除を返す
+                        },
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm == true) {
+                  await deleteAccount();
+                }
+              }),
         ],
       ),
     );
