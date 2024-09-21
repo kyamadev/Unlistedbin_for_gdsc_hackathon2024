@@ -54,7 +54,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
     }
   }
   //アカウント名をセットする
-  Future<void> setAccountName(DocumentReference _mainReference) async{
+  Future<void> setAccountName() async{
+    DocumentReference _mainReference = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userAuth.currentUser!.uid);
+
     if(userAuth.currentUser!=null){
       try{
         String username= _nameController.text;
@@ -75,9 +79,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    DocumentReference _mainReference = FirebaseFirestore.instance
-        .collection('users')
-        .doc(userAuth.currentUser!.uid);
 
     return Drawer(
       child: ListView(
@@ -115,7 +116,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       onPressed: () {
                         //アカウント名をfirebaseにセット
                         _account.username=_nameController.text;
-                        setAccountName(_mainReference);
+                        setAccountName();
                         Navigator.of(context).pop(
                             true); // 削除を返す
                       },
