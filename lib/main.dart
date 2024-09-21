@@ -62,7 +62,7 @@ class MyApp extends StatelessWidget {
               uri.pathSegments.first == 'repo') {
             String repoId = uri.pathSegments[1];
             return MaterialPageRoute(
-              builder: (context) => RepositoryScreen(repoId: repoId),
+              builder: (context) => RepositoryScreen(repoId: repoId, path: ''),
             );
           }
 
