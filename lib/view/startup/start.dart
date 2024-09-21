@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:for_gdsc_2024/view/startup/login.dart';
 import 'package:for_gdsc_2024/view/startup/register.dart';
@@ -119,6 +120,9 @@ class _StartState extends State<Start> {
                 style: ElevatedButton.styleFrom(
                     //文字の色と背景色
                     backgroundColor: Color(0xFF02607E)),
+              ),
+              SizedBox(
+                height: 40,
               ),
             ],
           ),
