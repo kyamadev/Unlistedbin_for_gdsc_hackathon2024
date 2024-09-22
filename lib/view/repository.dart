@@ -24,12 +24,15 @@ class _RepositoryState extends State<RepositoryScreen> {
   String? userId;
   String? ownerName;
   String? repoName;
+  int? repoMode;
 
   @override
   void initState() {
     super.initState();
     _initializeData();
   }
+
+
 
   Future<void> _initializeData() async {
     // userIdの取得を待ってから次の処理に進む
@@ -39,6 +42,7 @@ class _RepositoryState extends State<RepositoryScreen> {
     if (userId != null) {
       await getOwnerName(widget.repoId);
       await getRepoName(widget.repoId);
+      await getRepoMode(widget.repoId);
     }
     
     // ファイルの取得処理を呼び出す
@@ -125,6 +129,28 @@ class _RepositoryState extends State<RepositoryScreen> {
     }
   }
 
+  Future<void> getRepoMode(String repositoryId) async{
+    if (userId == null) return; // userIdがnullなら処理しない
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId!)
+          .collection('repositories')
+          .doc(repositoryId)
+          .get();
+
+      if (doc.exists) {
+        setState(() {
+          repoMode = doc.data()?['mode'];
+        });
+      } else {
+        print('リポジトリが存在しません: $repositoryId');
+      }
+    } catch (e) {
+      print('リポジトリモード取得エラー: $e');
+    }
+  }
+
   // Firebase Storageからファイルリストを取得するメソッド
   Future<void> _fetchFiles() async {
     if (userId == null) {
@@ -198,7 +224,7 @@ class _RepositoryState extends State<RepositoryScreen> {
             ? "$repoName by $ownerName"
             : 'Loading...'),
       ),
-      drawer: (repoName != null && ownerName != null && userAuth.currentUser!=null)
+      drawer: (repoName != null && ownerName != null &&widget.path.isEmpty && userAuth.currentUser!=null && repoMode==1)
       ? Drawer(
         child: ListView(
           children: <Widget>[
