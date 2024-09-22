@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:for_gdsc_2024/view/file_view.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:for_gdsc_2024/view/startup/checkUser.dart';
 
 class RepositoryScreen extends StatefulWidget {
   final String repoId;
@@ -188,12 +190,72 @@ class _RepositoryState extends State<RepositoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userAuth = FirebaseAuth.instance;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(repoName != null && ownerName != null
             ? "$repoName by $ownerName"
             : 'Loading...'),
       ),
+      drawer: (repoName != null && ownerName != null && userAuth.currentUser!=null)
+      ? Drawer(
+        child: ListView(
+          children: <Widget>[
+            const SizedBox(
+              height: 80,
+              child: DrawerHeader(
+                child: Text('設定とアクティビティ'),
+                decoration: BoxDecoration(
+                  color: Color(0xFFC5D8E7),
+                ),
+              ),
+            ),
+            ListTile(
+              title: Text('ログアウト'),
+              onTap: () async {
+                //アカウントからぬける
+                bool? confirm = await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text("ログアウト"),
+                    content: Text("ログアウトしてもよろしいですか？"),
+                    actions: [
+                      TextButton(
+                        child: Text("キャンセル"),
+                        onPressed: () {
+                          Navigator.of(context).pop(false); // キャンセルを返す
+                        },
+                      ),
+                      TextButton(
+                        child: Text("はい"),
+                        onPressed: () {
+                          Navigator.of(context).pop(true); // 削除を返す
+                        },
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm == true) {
+                  //ログアウト時に表示しているユーザ名初期化
+
+                  await FirebaseAuth.instance.signOut();
+                  while (FirebaseAuth.instance.currentUser != null) {
+                    await Future.delayed(Duration(milliseconds: 100));
+                  }
+                  print('ログアウト後のユーザー情報: ${userAuth.currentUser}');
+
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => Checkuser(userId: userId,repoId: widget.repoId,)),
+                        (_) => false,
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ): null, // repoNameまたはownerNameがnullの場合、Drawerを表示しない
       body: Container(
         margin: EdgeInsets.only(
           top: 50,

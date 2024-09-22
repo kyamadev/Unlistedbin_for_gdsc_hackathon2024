@@ -252,19 +252,16 @@ class _RegisterState extends State<Register> {
                             } else if (value.length < 6) {
                               return 'パスワードは6桁以上です';
                             }
-                            // 記号が含まれていないか確認
-                            String specialCharPattern = r'[!@#\$&*~]';
-                            RegExp specialCharRegex =
-                                RegExp(specialCharPattern);
-                            if (specialCharRegex.hasMatch(value)) {
-                              return 'パスワードに記号を含めないでください';
-                            }
-                            // 英字と数字が含まれているか確認
-                            String passwordPattern =
-                                r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$';
+                            // 記号を含むパターンにドットも追加
+                            String specialCharPattern = r'[!@#\$&*~.]';
+                            RegExp specialCharRegex = RegExp(specialCharPattern);
+
+                            // 英字、数字、記号（.を含む）のいずれかが含まれるか確認
+                            String passwordPattern = r'^(?=.*[A-Za-z]|.*\d|.*[!@#\$&*~.])[A-Za-z\d!@#\$&*~.]{6,}$';
                             RegExp regex = RegExp(passwordPattern);
+
                             if (!regex.hasMatch(value.trim())) {
-                              return 'パスワードは英字と数字の両方を含む必要があります';
+                              return 'パスワードは英字、数字、記号（.も含む）のいずれかを含む必要があります';
                             }
                             return null;
                           },
