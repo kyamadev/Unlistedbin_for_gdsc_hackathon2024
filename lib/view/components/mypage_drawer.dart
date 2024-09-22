@@ -92,15 +92,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
             .doc(userAuth.currentUser!.uid);
         batch.delete(userDocRef);
 
-        // ユーザーのレポジトリを削除
-        QuerySnapshot repoSnapshot = await FirebaseFirestore.instance
-            .collection('repositories')
-            .where('userId', isEqualTo: userAuth.currentUser!.uid)
-            .get();
-        for (DocumentSnapshot doc in repoSnapshot.docs) {
-          batch.delete(doc.reference);
-        }
-
         // バッチをコミット
         await batch.commit();
 
