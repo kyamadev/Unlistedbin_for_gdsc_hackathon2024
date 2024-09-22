@@ -69,7 +69,7 @@ class _StartState extends State<Start> {
                     ),
                     TextSpan(
                       text:
-                          '\nUnlistedbinはURLを共有することでレポジトリコードを限定公開できる、レポジトリサービスです。\n',
+                          '\nUnlistedbinはURLを共有することでレポジトリ内のコードを限定公開できる、レポジトリサービスです。\n',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
