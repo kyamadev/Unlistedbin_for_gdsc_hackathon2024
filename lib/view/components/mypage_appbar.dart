@@ -70,22 +70,22 @@ class _CustomAppBarState extends State<CustomAppBar> {
       title: Text('Unlistedbin'),
       actions: [
         Container(
-          width: 160,
           height: 60,
           margin: const EdgeInsets.all(10),
+          padding: const EdgeInsets.symmetric(horizontal: 10), // 余白を指定
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Center(
-            //user名表示・反映
-            child: Consumer<AppUserProvider>(
-              builder: (context, userModel, child) {
-                //user名がfirebaseに入っていないときには{Username}を返す
-                String displayName = userModel.username.isNotEmpty
-                    ? userModel.username
-                    : '{Username}';
-                return Text(
+          child: Consumer<AppUserProvider>(
+            builder: (context, userModel, child) {
+              //user名がfirebaseに入っていないときには{Username}を返す
+              String displayName = userModel.username.isNotEmpty
+                  ? userModel.username
+                  : '{Username}';
+              //boxの幅は名前の文字数に合うようにしている
+              return FittedBox(fit: BoxFit.scaleDown,
+                child: Text(
                   displayName,
                   style: TextStyle(
                     color: Color(0xFF02607E),
@@ -94,9 +94,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
                     fontWeight: FontWeight.w400,
                     height: 1.0,
                   ),
-                );
-              },
-            ),
+                )
+              );
+            },
           ),
         ),
       ],
