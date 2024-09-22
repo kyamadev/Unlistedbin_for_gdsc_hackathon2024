@@ -54,6 +54,7 @@ class _MyPageSettingState extends State<MyPageSetting> {
           setState(() {
             reponame = snapshot.get('name') as String;
             url_key = snapshot.get('url_key') as String;
+            _privacyVal =snapshot.get('mode');
           });
         }
       } catch (e) {
