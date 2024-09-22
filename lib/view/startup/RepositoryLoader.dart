@@ -73,20 +73,20 @@ class _RepositoryloaderState extends State<Repositoryloader> {
         int mode =repoSnapshot.get('mode');
 
         if(mode==0){
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => RepositoryScreen(repoId: widget.repoId, path: '')));
+          Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) => RepositoryScreen(repoId: widget.repoId, path: '')), (_) => false);
         }
         if(mode==1){
           final User? user = FirebaseAuth.instance.currentUser;
           //Userがnullのとき
           if(user==null){
-            Navigator.push(context,
-                MaterialPageRoute( builder: (context) => Checkuser(userId: userId,repoId: widget.repoId)));
+            Navigator.pushAndRemoveUntil(context,
+                MaterialPageRoute( builder: (context) => Checkuser(userId: userId,repoId: widget.repoId)), (_) => false);
           }
           // 作成者とログインしているユーザーが一致する場合
           else if (user.uid == userId) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => RepositoryScreen(repoId: widget.repoId, path: '')));
+            Navigator.pushAndRemoveUntil(context,
+                MaterialPageRoute(builder: (context) => RepositoryScreen(repoId: widget.repoId, path: '')), (_) => false);
           }else{
             Fluttertoast.showToast(msg: "権限がないため見れません");
           }
