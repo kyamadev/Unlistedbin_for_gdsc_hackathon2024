@@ -54,7 +54,7 @@ class _MyPageSettingState extends State<MyPageSetting> {
           setState(() {
             reponame = snapshot.get('name') as String;
             url_key = snapshot.get('url_key') as String;
-            _privacyVal =snapshot.get('mode');
+            _privacyVal = snapshot.get('mode');
           });
         }
       } catch (e) {
@@ -298,7 +298,7 @@ class _MyPageSettingState extends State<MyPageSetting> {
                                 context: context,
                                 builder: (context) => AlertDialog(
                                   title: Text("モード変更"),
-                                  content: Text("限定公開になります"),
+                                  content: Text("URL共有を無効化しますか？"),
                                   actions: [
                                     TextButton(
                                       child: Text("キャンセル"),
@@ -331,7 +331,7 @@ class _MyPageSettingState extends State<MyPageSetting> {
                           const Flexible(
                             child: FittedBox(
                               child: Text(
-                                'Private (Share URL or disabled)',
+                                'Private (Share URL disabled)',
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 20),
                               ),

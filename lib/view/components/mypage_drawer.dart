@@ -126,7 +126,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ),
           ),
           ListTile(
-            title: Text('アカウント設定'),
+            title: Text('ユーザーネーム変更'),
             onTap: () async {
               bool? confirm = await showDialog(
                 context: context,
