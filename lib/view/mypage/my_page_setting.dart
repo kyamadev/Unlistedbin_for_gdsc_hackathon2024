@@ -125,6 +125,7 @@ class _MyPageSettingState extends State<MyPageSetting> {
     }
   }
 
+  //_deleteRepository()で呼ばれているメソッド
   Future<void> _deleteFolder(String folderPath) async {
     //フォルダ内の全てのファイルを取得
     final ListResult result =
@@ -234,18 +235,7 @@ class _MyPageSettingState extends State<MyPageSetting> {
                               ),
                             ],
                           )),
-                      SizedBox(height: 30),
-                      //URL再生成 ボタン
-                      OutlinedButton(
-                        child: const Text('Regenerate URL'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: Color(0xff878702),
-                          shape: const StadiumBorder(),
-                          side: const BorderSide(color: Colors.white),
-                        ),
-                        onPressed: () {},
-                      ),
+
                       SizedBox(height: 30),
                       //レポジトリ削除 ボタン
                       OutlinedButton(
