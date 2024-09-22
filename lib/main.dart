@@ -43,6 +43,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false, //デバッグバナー
         title: 'Unlistedbin',
         theme: ThemeData(
           appBarTheme: const AppBarTheme(
@@ -53,7 +54,7 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
         ),
 
-        onGenerateRoute: (settings)  {
+        onGenerateRoute: (settings) {
           String routeName = settings.name ?? '/';
           if (kIsWeb && routeName == '/') {
             routeName =
@@ -67,7 +68,7 @@ class MyApp extends StatelessWidget {
             String repoId = uri.pathSegments[1];
 
             return MaterialPageRoute(
-                builder: (context)=>Repositoryloader(repoId: repoId),
+              builder: (context) => Repositoryloader(repoId: repoId),
             );
           }
 
